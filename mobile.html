@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Archive</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://npm.elemecdn.com/lxgw-wenkai-screen-webfont/style.css" media="print" onload="this.media='all'">
+    <style>
+        :root { --bg-color:#ffffff; --text-color:#000000; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+            background: var(--bg-color); color: var(--text-color);
+            overflow: hidden; user-select: none;
+            transition: filter 0.8s ease;
+        }
+        body.dark-mode { filter: invert(1) hue-rotate(180deg); }
+        .glass-panel {
+            background: rgba(255,255,255,0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        .font-wenkai { font-family:"LXGW WenKai Screen",serif; letter-spacing:1px; line-height:1.8; }
+        .ios-toggle {
+            appearance:none; width:50px; height:30px; background:var(--text-color);
+            border-radius:30px; position:relative; cursor:pointer; outline:none;
+            transition:0.3s; border:2px solid var(--text-color);
+        }
+        .ios-toggle::after {
+            content:''; position:absolute; top:2px; left:22px; width:22px; height:22px;
+            background-color:var(--bg-color); border-radius:50%;
+            transition: left 0.5s cubic-bezier(0.68,-0.6,0.32,1.6), background-color 0.3s;
+        }
+        .ios-toggle:not(:checked) { background:var(--bg-color); }
+        .ios-toggle:not(:checked)::after { left:2px; background-color:var(--text-color); }
+        input[type=range] { -webkit-appearance:none; background:transparent; width:100%; }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance:none; height:28px; width:28px; border-radius:50%;
+            background:#000; cursor:pointer; margin-top:-12px;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            height:4px; background:#e5e7eb; border-radius:2px;
+        }
+        @keyframes toastFade {
+            0%{opacity:0;transform:translate(-50%,-20px);}
+            10%{opacity:1;transform:translate(-50%,0);}
+            90%{opacity:1;transform:translate(-50%,0);}
+            100%{opacity:0;transform:translate(-50%,-20px);}
+        }
+        .toast-anim { animation: toastFade var(--toast-duration,3s) forwards; }
+        @keyframes shake {
+            0%,100%{transform:translateX(0);}
+            20%,60%{transform:translateX(-5px) rotate(-1deg);}
+            40%,80%{transform:translateX(5px) rotate(1deg);}
+        }
+        .shake-anim { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; color:#dc2626; }
+        .step-container {
+            position:absolute; top:0; left:0; right:0; bottom:0;
+            display:flex; flex-direction:column; align-items:center; justify-content:center;
+            opacity:0; pointer-events:none; transition:opacity 0.8s ease;
+        }
+        .step-container.active { opacity:1; pointer-events:auto; }
+        .hide-scrollbar::-webkit-scrollbar { display:none; }
+        .hide-scrollbar { -ms-overflow-style:none; scrollbar-width:none; }
+
+        /* Level 1 countdown ring */
+        #cdSvg { transform:rotate(-90deg); }
+
+        /* Level 5 tap targets */
+        .tap-target {
+            position:absolute; width:60px; height:60px; border-radius:50%;
+            background:#000; display:flex; align-items:center; justify-content:center;
+            color:#fff; font-weight:700; font-size:1.2rem;
+            transform:scale(0); transition:transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
+            touch-action:none;
+        }
+        .tap-target.show { transform:scale(1); }
+        .tap-target.hit  { transform:scale(0); transition:transform 0.12s ease; }
+        .progress-dot { width:8px; height:8px; border-radius:50%; background:#e5e7eb; transition:background 0.3s; }
+        .progress-dot.done { background:#000; }
+
+        .scratch-container { position:relative; width:150px; height:40px; }
+        #scratchCanvas { position:absolute; top:0; left:0; width:100%; height:100%; cursor:pointer; z-index:10; border-radius:4px; }
+        #secretPasswordDisplay {
+            position:absolute; top:0; left:0; width:100%; height:100%;
+            display:flex; align-items:center; justify-content:center;
+            font-family:monospace; font-size:1.1rem; letter-spacing:2px;
+            color:#000; background:#f3f4f6; border-radius:4px; z-index:5; border:1px dashed #ccc;
+        }
+        #blackHole {
+            width:130px; height:130px; border-radius:50%;
+            background:radial-gradient(circle at center,#000 0%,#1a1a1a 40%,transparent 70%);
+            box-shadow:0 0 50px 20px rgba(0,0,0,0.8);
+            animation:rotateHole 4s linear infinite;
+        }
+        @keyframes rotateHole { 100%{transform:rotate(360deg);} }
+        .sucked-in {
+            transform:scale(0) rotate(720deg) !important;
+            opacity:0 !important; filter:blur(10px);
+            transition:all 1s cubic-bezier(0.5,0,0,1) !important;
+        }
+        #darkBtn {
+            position:fixed; top:14px; right:16px; z-index:100;
+            width:34px; height:34px; border-radius:50%;
+            background:rgba(0,0,0,0.06); border:none; cursor:pointer;
+            font-size:16px; display:flex; align-items:center; justify-content:center;
+        }
+    </style>
+</head>
+<body class="w-screen h-screen relative">
+
+<button id="darkBtn">☽</button>
+<div id="failWidget" class="fixed bottom-5 right-5 z-40 text-[10px] text-gray-300 font-mono tracking-widest hidden">
+    FRUSTRATION INDEX: <span id="failCount" class="text-black font-bold">0</span>
+</div>
+<div id="toast" class="fixed top-10 left-1/2 z-50 hidden glass-panel px-5 py-2.5 rounded-full text-sm font-medium tracking-widest pointer-events-none text-black border border-gray-200 shadow-sm whitespace-nowrap"></div>
+
+<!-- Level 1: 不要触碰 -->
+<div id="step1" class="step-container active bg-gray-50/50">
+    <div class="glass-panel w-[min(340px,88vw)] rounded-3xl flex flex-col items-center p-10 shadow-2xl">
+        <h1 class="text-2xl font-light tracking-tight mb-8">欢迎探索未知</h1>
+        <div class="relative mb-6">
+            <svg id="cdSvg" width="90" height="90" viewBox="0 0 90 90">
+                <circle cx="45" cy="45" r="38" fill="none" stroke="#e5e7eb" stroke-width="5"/>
+                <circle id="cdCircle" cx="45" cy="45" r="38" fill="none" stroke="#000" stroke-width="5"/>
+            </svg>
+            <div id="cdNum" class="absolute inset-0 flex items-center justify-center text-3xl font-light">3</div>
+        </div>
+        <p class="text-xs text-gray-400 tracking-widest text-center leading-relaxed">保持 3 秒不触碰屏幕</p>
+        <div id="trickBtn" class="mt-6 px-4 py-2 border border-gray-200 rounded-full text-xs text-gray-300 cursor-pointer">别点这里</div>
+    </div>
+</div>
+
+<!-- Level 2: 服务条款（可见文字） -->
+<div id="step2" class="step-container bg-white">
+    <div class="w-[min(500px,92vw)] h-[75vh] max-h-[600px] flex flex-col relative">
+        <h2 class="text-2xl font-bold mb-6 text-center tracking-tighter">服务条款</h2>
+        <div id="tosContainer" class="flex-1 overflow-y-auto hide-scrollbar border-y border-gray-100 px-4 py-6 font-wenkai text-gray-800 text-sm"></div>
+        <div class="mt-6 flex justify-center">
+            <button id="agreeBtn" class="px-8 py-3 bg-gray-200 text-gray-400 rounded-full text-sm font-semibold tracking-widest cursor-not-allowed transition-colors duration-500">
+                我已仔细阅读
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Level 3: 手机号 -->
+<div id="step3" class="step-container bg-white">
+    <div class="w-[min(480px,92vw)] relative" style="min-height:320px">
+        <div id="s3a" class="absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-500">
+            <p class="text-sm text-gray-400 mb-8 text-center">为了您的安全，请拖动滑块选择您的真实手机号码。</p>
+            <div class="text-3xl font-mono tracking-widest mb-8 text-black" id="phoneDisplay">13000000000</div>
+            <input type="range" id="phoneSlider" min="13000000000" max="19999999999" value="13000000000" step="1" class="w-full mb-4">
+            <p class="text-xs text-gray-400 mb-10">（禁用了键盘输入）</p>
+            <button id="sendCodeBtn" class="px-10 py-3 bg-black text-white rounded-full text-sm font-semibold tracking-widest">发送验证码</button>
+        </div>
+        <div id="s3b" class="absolute inset-0 flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-500">
+            <p class="text-sm text-gray-400 mb-6 text-center">短信验证码已发送至：<br>
+                <span id="confirmPhone" class="text-2xl font-mono font-bold text-black mt-3 inline-block tracking-widest"></span>
+            </p>
+            <input type="text" id="smsInput" placeholder="点击输入" maxlength="6"
+                class="w-2/3 border-b border-gray-300 py-3 text-center text-xl focus:outline-none bg-transparent mb-8 tracking-[0.5em] font-mono">
+            <button id="verifyBtn" class="px-10 py-3 bg-black text-white rounded-full text-sm font-semibold tracking-widest mb-6">验证并继续</button>
+            <button id="backBtn" class="text-xs text-gray-400 underline underline-offset-4">收不到短信？返回修改号码</button>
+        </div>
+    </div>
+</div>
+
+<!-- Level 4: 密码 -->
+<div id="step4" class="step-container bg-white">
+    <div class="w-[min(440px,92vw)] flex flex-col px-4">
+        <h2 class="text-3xl font-bold mb-2 tracking-tighter">设置密钥</h2>
+        <p class="text-sm text-gray-400 mb-8">带情绪的符号会引起不适，请保持冷静。</p>
+        <div class="flex items-end gap-4 mb-6">
+            <input type="password" id="pwdInput" placeholder="输入密码..."
+                class="flex-1 border-b border-gray-300 py-3 text-lg focus:outline-none bg-transparent placeholder-gray-300">
+            <div class="scratch-container">
+                <div id="secretPasswordDisplay">****</div>
+                <canvas id="scratchCanvas"></canvas>
+            </div>
+        </div>
+        <div id="rulesContainer" class="flex flex-col gap-3 text-sm"></div>
+        <button id="pwdNext" class="mt-10 px-8 py-3 bg-black text-white rounded-full text-sm font-semibold opacity-0 pointer-events-none transition-opacity duration-500 self-start">
+            继续向后 →
+        </button>
+    </div>
+</div>
+
+<!-- Level 5: 点击黑点 -->
+<div id="step5" class="step-container bg-gray-50">
+    <div class="w-[min(560px,92vw)] glass-panel p-6 rounded-3xl flex flex-col items-center">
+        <h2 class="text-xl font-semibold mb-1 tracking-wide">点击验证</h2>
+        <p class="text-xs text-gray-500 mb-4">依次点击出现的黑点，共 5 个。</p>
+        <div class="flex gap-2 mb-5" id="tapDots"></div>
+        <div id="tapArena" class="relative w-full rounded-xl bg-white border border-gray-100 overflow-hidden" style="height:190px">
+            <div id="tapTarget" class="tap-target"></div>
+        </div>
+        <div class="mt-3 w-full h-1 bg-gray-100 rounded-full overflow-hidden">
+            <div id="tapBar" class="h-full bg-black rounded-full" style="width:100%; transition:none"></div>
+        </div>
+        <button id="startTap" class="mt-6 px-8 py-3 bg-black text-white rounded-full text-sm font-semibold tracking-widest">开始</button>
+    </div>
+</div>
+
+<!-- Level 6: 开关矩阵 -->
+<div id="step6" class="step-container bg-white">
+    <div class="w-[min(380px,88vw)] flex flex-col items-center">
+        <h2 class="text-2xl font-bold mb-2 tracking-tighter">隐私偏好</h2>
+        <p class="text-sm text-gray-500 mb-10 text-center">系统默认开启所有订阅。<br>如需取消，请关闭以下所有开关。</p>
+        <div class="grid grid-cols-3 gap-x-8 gap-y-10" id="toggleGrid"></div>
+        <button id="resetToggles" class="mt-8 text-xs text-gray-400 underline underline-offset-4 tracking-widest">重置所有开关</button>
+        <button id="submitBtn" class="mt-6 px-10 py-3 bg-black text-white rounded-full text-sm font-semibold tracking-widest opacity-30 pointer-events-none transition-all duration-500">生成档案</button>
+    </div>
+</div>
+
+<!-- Level 7: 黑洞 -->
+<div id="step7" class="step-container bg-gray-100">
+    <div id="blackHoleContainer" class="absolute top-1/4 flex flex-col items-center">
+        <p class="text-gray-500 mb-5 font-mono tracking-widest text-sm uppercase">Trash Can</p>
+        <div id="blackHole"></div>
+    </div>
+    <div id="archiveCard" class="absolute bottom-1/4 w-[min(280px,80vw)] bg-white rounded-xl shadow-xl border border-gray-200 p-5 flex flex-col cursor-grab" style="touch-action:none">
+        <div class="border-b border-gray-100 pb-3 mb-3 flex justify-between items-center">
+            <h3 class="font-bold">您的绝密档案</h3>
+            <span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">不可逆</span>
+        </div>
+        <p class="text-sm text-gray-500 mb-1">经过重重折磨，档案已生成。</p>
+        <p class="text-xs text-gray-400">拖进上方黑洞。</p>
+    </div>
+    <div id="victoryText" class="absolute inset-0 flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-1000 z-50">
+        <h1 class="text-5xl font-black tracking-tighter mb-6 text-black">You Survived.</h1>
+        <div class="bg-white/90 rounded-2xl px-8 py-6 shadow-sm text-center" style="max-width:270px">
+            <p class="text-xs font-mono tracking-[0.2em] text-gray-400 uppercase mb-4">折磨报告</p>
+            <div class="flex justify-around gap-6 mb-4">
+                <div><div id="finalFails" class="text-3xl font-black">0</div><div class="text-xs text-gray-400 mt-1">失败次数</div></div>
+                <div><div id="finalMins" class="text-3xl font-black">-</div><div class="text-xs text-gray-400 mt-1">浪费分钟</div></div>
+            </div>
+            <p class="text-xs text-gray-400">下次别点进来了</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    const startTime = Date.now();
+    let totalFails = 0, failData = {1:0,2:0,3:0,4:0,5:0,6:0};
+    let toastTO;
+
+    function showToast(msg, dur=3000) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.remove('hidden','toast-anim');
+        void t.offsetWidth;
+        t.style.setProperty('--toast-duration', dur/1000+'s');
+        t.classList.add('toast-anim');
+        clearTimeout(toastTO);
+        toastTO = setTimeout(()=>{ t.classList.add('hidden'); t.classList.remove('toast-anim'); }, dur);
+    }
+    function recordFail(step, thresh, hint, hintDur=5000) {
+        failData[step]++;
+        totalFails++;
+        document.getElementById('failWidget').classList.remove('hidden');
+        document.getElementById('failCount').textContent = totalFails;
+        if (failData[step] === thresh) showToast(hint, hintDur);
+    }
+    function goToStep(n) {
+        document.querySelectorAll('.step-container').forEach(el=>el.classList.remove('active'));
+        document.getElementById('step'+n).classList.add('active');
+        if (n===4) initScratch();
+        if (n===5) initTap();
+    }
+
+    document.getElementById('darkBtn').addEventListener('click', ()=> document.body.classList.toggle('dark-mode'));
+
+    // ── Level 1: 不要触碰 ────────────────────────────────────────────
+    const C = 2 * Math.PI * 38; // circumference ≈ 238.76
+    const cdCircle = document.getElementById('cdCircle');
+    const cdNum    = document.getElementById('cdNum');
+    cdCircle.style.strokeDasharray  = C;
+    cdCircle.style.strokeDashoffset = C; // starts empty
+
+    let cdActive = false, cdStart = null, cdRaf = null, cdTO = null;
+    const CD_DUR = 3000;
+
+    function startCD() {
+        cdActive = true;
+        cdStart = performance.now();
+        requestAnimationFrame(tickCD);
+    }
+    function tickCD(ts) {
+        if (!cdActive) return;
+        const progress = Math.min((ts - cdStart) / CD_DUR, 1);
+        cdCircle.style.strokeDashoffset = C * (1 - progress);
+        cdNum.textContent = Math.max(1, Math.ceil((1 - progress) * 3));
+        if (progress >= 1) { cdActive = false; goToStep(2); return; }
+        cdRaf = requestAnimationFrame(tickCD);
+    }
+    function resetCD() {
+        cancelAnimationFrame(cdRaf);
+        clearTimeout(cdTO);
+        cdActive = false;
+        cdCircle.style.strokeDashoffset = C;
+        cdNum.textContent = '3';
+        recordFail(1, 5, '提示：放下手指，等 3 秒');
+        cdTO = setTimeout(startCD, 600);
+    }
+
+    document.getElementById('step1').addEventListener('touchstart', ()=>{
+        if (!document.getElementById('step1').classList.contains('active')) return;
+        resetCD();
+    }, { passive: true });
+
+    document.getElementById('trickBtn').addEventListener('click', resetCD);
+    document.getElementById('trickBtn').addEventListener('touchstart', e=>{ e.stopPropagation(); }, { passive: true });
+
+    cdTO = setTimeout(startCD, 800);
+
+    // ── Level 2: 服务条款 ────────────────────────────────────────────
+    const tosStr = Array(20).fill(0).map((_,i)=>
+        `<p class="mb-4">第 ${i+1} 条：用户不得使用任何自动化脚本或快速滚动设备跳过本协议。若系统检测到您的阅读速度超过人类生理极限，系统将出于对您视力保护的考虑，自动将您的阅读进度重置为零。这种设计并非出于恶意，而是我们对古典阅读精神的一种现代致敬。请您深呼吸，感受汉字之美，一字一句地向下浏览。</p>`
+    ).join('');
+    document.getElementById('tosContainer').innerHTML = tosStr;
+
+    const tosEl = document.getElementById('tosContainer');
+    const agreeBtn = document.getElementById('agreeBtn');
+    let tosRead = false, lastTY = 0, lastTTime = 0;
+
+    tosEl.addEventListener('touchmove', ()=>{
+        const now = Date.now(), dy = tosEl.scrollTop - lastTY;
+        const speed = Math.abs(dy) / Math.max(now - lastTTime, 1);
+        if (speed > 2 && dy > 0) {
+            tosEl.scrollTo({top:0, behavior:'smooth'});
+            showToast('滑太快了，重来');
+            recordFail(2, 3, '提示：慢慢滑到底');
+        }
+        lastTY = tosEl.scrollTop; lastTTime = now;
+    }, { passive: true });
+
+    tosEl.addEventListener('scroll', ()=>{
+        if (tosEl.scrollHeight - tosEl.scrollTop - tosEl.clientHeight < 10 && !tosRead) {
+            tosRead = true;
+            agreeBtn.classList.remove('bg-gray-200','text-gray-400','cursor-not-allowed');
+            agreeBtn.classList.add('bg-black','text-white','cursor-pointer');
+        }
+    });
+    agreeBtn.addEventListener('click', ()=>{ if(tosRead) goToStep(3); });
+
+    // ── Level 3: 手机号 ──────────────────────────────────────────────
+    const phoneSlider = document.getElementById('phoneSlider');
+    const phoneDisplay = document.getElementById('phoneDisplay');
+    const sendCodeBtn  = document.getElementById('sendCodeBtn');
+    const s3a = document.getElementById('s3a'), s3b = document.getElementById('s3b');
+    const confirmPhone = document.getElementById('confirmPhone');
+    const smsInput = document.getElementById('smsInput');
+    let smsTimer = null;
+
+    phoneSlider.addEventListener('input', e=> phoneDisplay.textContent = e.target.value);
+    phoneSlider.addEventListener('change', e=>{
+        let v = parseInt(e.target.value), off = Math.floor(Math.random()*31)-15;
+        if(off===0) off=5;
+        v+=off; phoneSlider.value=v; phoneDisplay.textContent=v;
+        showToast('手抖了');
+    });
+
+    function startSmsCd() {
+        clearInterval(smsTimer);
+        let c=30;
+        sendCodeBtn.textContent=`重发 (${c}s)`; sendCodeBtn.disabled=true; sendCodeBtn.classList.add('opacity-50');
+        smsTimer=setInterval(()=>{
+            c=Math.max(0,c-0.3); sendCodeBtn.textContent=`重发 (${Math.ceil(c)}s)`;
+            if(c<=0){ clearInterval(smsTimer); sendCodeBtn.textContent='重新发送'; sendCodeBtn.disabled=false; sendCodeBtn.classList.remove('opacity-50'); }
+        },1000);
+    }
+    sendCodeBtn.addEventListener('click', ()=>{
+        s3a.classList.add('opacity-0','pointer-events-none');
+        confirmPhone.textContent = phoneSlider.value;
+        setTimeout(()=> s3b.classList.remove('opacity-0','pointer-events-none'), 50);
+        showToast('已发送'); startSmsCd();
+    });
+    document.getElementById('backBtn').addEventListener('click', ()=>{
+        s3b.classList.add('opacity-0','pointer-events-none');
+        setTimeout(()=> s3a.classList.remove('opacity-0','pointer-events-none'), 50);
+        smsInput.value='';
+        recordFail(3,3,'提示：万能码是 000000',5000);
+    });
+    document.getElementById('verifyBtn').addEventListener('click', ()=>{
+        if(smsInput.value==='000000') goToStep(4);
+        else { showToast('验证码错误'); recordFail(3,3,'提示：万能码是 000000',5000); }
+    });
+
+    // ── Level 4: 密码 ────────────────────────────────────────────────
+    const pwdInput = document.getElementById('pwdInput');
+    const secretDisp = document.getElementById('secretPasswordDisplay');
+    const rulesEl = document.getElementById('rulesContainer');
+    const pwdNext = document.getElementById('pwdNext');
+    const curMonth = new Date().toLocaleString('en-US',{month:'short'});
+    const rules = [
+        {id:'r1',text:'至少 8 个字符',         check:v=>v.length>=8},
+        {id:'r2',text:'包含大写字母',           check:v=>/[A-Z]/.test(v)},
+        {id:'r3',text:'长度是素数',              check:v=>{const l=v.length;if(l<=1)return false;for(let i=2;i<=Math.sqrt(l);i++)if(l%i===0)return false;return true;}},
+        {id:'r4',text:`含本月缩写 (${curMonth})`,check:v=>v.includes(curMonth)},
+        {id:'r5',text:'所有数字之和等于 25',    check:v=>{const n=v.match(/\d/g);return n&&n.reduce((a,c)=>a+parseInt(c),0)===25;}},
+    ];
+    let ruleIdx=0;
+
+    function renderRule(i,ok){
+        const r=rules[i]; let el=document.getElementById(r.id);
+        if(!el){
+            el=document.createElement('div'); el.id=r.id;
+            el.className='flex items-center gap-2 opacity-0 transition-opacity duration-700 text-gray-400';
+            el.innerHTML=`<div class="w-4 h-4 rounded-full border border-current flex items-center justify-center ib transition-colors"></div><span>${r.text}</span>`;
+            rulesEl.appendChild(el); void el.offsetWidth; el.classList.remove('opacity-0');
+        }
+        const box=el.querySelector('.ib');
+        if(ok){
+            el.classList.replace('text-gray-400','text-black'); box.classList.add('bg-black','border-black');
+            box.innerHTML=`<svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>`;
+        } else {
+            el.classList.replace('text-black','text-gray-400'); box.classList.remove('bg-black','border-black'); box.innerHTML='';
+        }
+    }
+    renderRule(0,false);
+
+    pwdInput.addEventListener('input', e=>{
+        const v=e.target.value;
+        secretDisp.textContent = v.length>0 ? v.substring(0,10)+(v.length>10?'...':'') : '****';
+        if(v.includes('!')||v.includes('?')||v.includes('！')||v.includes('？')){
+            pwdInput.classList.remove('shake-anim'); void pwdInput.offsetWidth; pwdInput.classList.add('shake-anim');
+        }
+        let allOk=true;
+        for(let i=0;i<=ruleIdx;i++){const p=rules[i].check(v);renderRule(i,p);if(!p)allOk=false;}
+        if(allOk&&ruleIdx<rules.length-1){ruleIdx++;renderRule(ruleIdx,false);allOk=false;}
+        if(allOk&&ruleIdx===rules.length-1) pwdNext.classList.remove('opacity-0','pointer-events-none');
+        else pwdNext.classList.add('opacity-0','pointer-events-none');
+    });
+    pwdInput.addEventListener('keydown', e=>{
+        if(e.key==='Backspace'||e.key==='Delete') recordFail(4,20,`提示：A11111111111111225${curMonth}`,6000);
+    });
+    pwdNext.addEventListener('click', ()=>goToStep(5));
+
+    // Scratch card
+    let scratchCtx, isScratch=false;
+    function initScratch(){
+        const c=document.getElementById('scratchCanvas');
+        scratchCtx=c.getContext('2d');
+        c.width=c.offsetWidth; c.height=c.offsetHeight;
+        const g=scratchCtx.createLinearGradient(0,0,c.width,c.height);
+        g.addColorStop(0,'#e5e7eb'); g.addColorStop(0.5,'#d1d5db'); g.addColorStop(1,'#9ca3af');
+        scratchCtx.fillStyle=g; scratchCtx.fillRect(0,0,c.width,c.height);
+        scratchCtx.font='11px sans-serif'; scratchCtx.fillStyle='#6b7280'; scratchCtx.textAlign='center';
+        scratchCtx.fillText('刮开查看',c.width/2,c.height/2+4);
+        scratchCtx.globalCompositeOperation='destination-out';
+    }
+    function doScratch(e){
+        if(!isScratch)return;
+        const r=document.getElementById('scratchCanvas').getBoundingClientRect();
+        scratchCtx.beginPath(); scratchCtx.arc(e.clientX-r.left,e.clientY-r.top,12,0,Math.PI*2); scratchCtx.fill();
+    }
+    const sc=document.getElementById('scratchCanvas');
+    sc.addEventListener('mousedown',()=>isScratch=true);
+    window.addEventListener('mouseup',()=>isScratch=false);
+    sc.addEventListener('mousemove',doScratch);
+    sc.addEventListener('touchstart',e=>{isScratch=true;doScratch(e.touches[0]);},{passive:true});
+    sc.addEventListener('touchend',()=>isScratch=false);
+    sc.addEventListener('touchmove',e=>{e.preventDefault();doScratch(e.touches[0]);},{passive:false});
+
+    // ── Level 5: 点击黑点 ────────────────────────────────────────────
+    const tapArena  = document.getElementById('tapArena');
+    const tapTarget = document.getElementById('tapTarget');
+    const tapDots   = document.getElementById('tapDots');
+    const tapBar    = document.getElementById('tapBar');
+    const startTap  = document.getElementById('startTap');
+    const TAP_TOTAL=5, TAP_MS=2000;
+    let tapCount=0, tapMiss=0, tapActive=false, tapTO=null;
+
+    for(let i=0;i<TAP_TOTAL;i++){
+        const d=document.createElement('div'); d.className='progress-dot'; tapDots.appendChild(d);
+    }
+    function updateDots(){ tapDots.querySelectorAll('.progress-dot').forEach((d,i)=> d.classList.toggle('done',i<tapCount)); }
+
+    function initTap(){ tapCount=0;tapMiss=0;tapActive=false;tapTarget.classList.remove('show','hit');tapBar.style.width='100%';tapBar.style.transition='none';updateDots();startTap.style.display=''; }
+
+    function showNext(){
+        if(!tapActive) return;
+        clearTimeout(tapTO);
+        tapTarget.classList.remove('hit'); tapTarget.style.transition='none';
+        const aw=tapArena.offsetWidth-60, ah=tapArena.offsetHeight-60;
+        tapTarget.style.left=Math.max(0,Math.random()*aw)+'px';
+        tapTarget.style.top =Math.max(0,Math.random()*ah)+'px';
+        void tapTarget.offsetWidth;
+        tapTarget.style.transition='transform 0.2s cubic-bezier(0.34,1.56,0.64,1)';
+        tapTarget.classList.add('show');
+        tapBar.style.transition='none'; tapBar.style.width='100%';
+        void tapBar.offsetWidth;
+        tapBar.style.transition=`width ${TAP_MS}ms linear`; tapBar.style.width='0%';
+        tapTO=setTimeout(()=>{
+            tapTarget.classList.remove('show'); tapMiss++;
+            recordFail(5,2,'提示：手快一点');
+            if(tapMiss>=3){ showToast('超时太多，重来'); tapActive=false; initTap(); }
+            else showNext();
+        }, TAP_MS);
+    }
+
+    function onTapHit(){
+        if(!tapActive) return;
+        clearTimeout(tapTO);
+        tapTarget.classList.remove('show'); tapTarget.classList.add('hit');
+        tapCount++; updateDots();
+        if(tapCount>=TAP_TOTAL){ tapActive=false; showToast('验证成功！'); setTimeout(()=>goToStep(6),800); }
+        else setTimeout(showNext,280);
+    }
+
+    tapTarget.addEventListener('touchstart',e=>{ e.preventDefault(); onTapHit(); },{passive:false});
+    tapTarget.addEventListener('click', onTapHit);
+    startTap.addEventListener('click', ()=>{ startTap.style.display='none'; tapActive=true; tapCount=0; tapMiss=0; updateDots(); showNext(); });
+
+    // ── Level 6: 开关矩阵 ────────────────────────────────────────────
+    const toggleGrid=document.getElementById('toggleGrid');
+    const submitBtn=document.getElementById('submitBtn');
+    const GS=3; let tState=[1,1,1,1,1,1,1,1,1];
+
+    function renderToggles(){
+        toggleGrid.innerHTML='';
+        tState.forEach((s,i)=>{
+            const lbl=document.createElement('label'); lbl.className='flex flex-col items-center gap-2';
+            const cb=document.createElement('input'); cb.type='checkbox'; cb.className='ios-toggle'; cb.checked=s===1;
+            cb.addEventListener('click',e=>{e.preventDefault();handleTgl(i);});
+            const sp=document.createElement('span'); sp.className='text-xs text-gray-400 font-medium'; sp.textContent=`条款 0${i+1}`;
+            lbl.appendChild(cb); lbl.appendChild(sp); toggleGrid.appendChild(lbl);
+        });
+        if(tState.every(s=>s===0)){ submitBtn.classList.remove('opacity-30','pointer-events-none'); }
+        else { submitBtn.classList.add('opacity-30','pointer-events-none'); }
+    }
+    function handleTgl(i){
+        const r=Math.floor(i/GS),c=i%GS;
+        [[r,c],[r-1,c],[r+1,c],[r,c-1],[r,c+1]].forEach(([rr,cc])=>{
+            if(rr>=0&&rr<GS&&cc>=0&&cc<GS) tState[rr*GS+cc]^=1;
+        });
+        renderToggles(); recordFail(6,25,'提示：先点四角，再点中间',6000);
+    }
+    renderToggles();
+    document.getElementById('resetToggles').addEventListener('click',()=>{ tState=[1,1,1,1,1,1,1,1,1]; renderToggles(); });
+    submitBtn.addEventListener('click',()=>{ document.getElementById('failWidget').classList.add('hidden'); goToStep(7); });
+
+    // ── Level 7: 黑洞 ────────────────────────────────────────────────
+    const archCard=document.getElementById('archiveCard');
+    const bhEl=document.getElementById('blackHole');
+    const victoryEl=document.getElementById('victoryText');
+    let isDrag=false, cOff={x:0,y:0};
+
+    function triggerVictory(){
+        document.getElementById('finalFails').textContent=totalFails;
+        document.getElementById('finalMins').textContent=Math.max(1,Math.ceil((Date.now()-startTime)/60000));
+        victoryEl.classList.remove('opacity-0','pointer-events-none');
+    }
+    function onCardMove(cx,cy){
+        if(!isDrag||!document.getElementById('step7').classList.contains('active')) return;
+        archCard.style.left=`${cx-cOff.x}px`; archCard.style.top=`${cy-cOff.y}px`; archCard.style.bottom='auto';
+        const hr=bhEl.getBoundingClientRect(), cr=archCard.getBoundingClientRect();
+        const dx=(hr.left+hr.width/2)-(cr.left+cr.width/2);
+        const dy=(hr.top+hr.height/2)-(cr.top+cr.height/2);
+        if(Math.sqrt(dx*dx+dy*dy)<80){
+            isDrag=false;
+            archCard.style.left=`${cr.left+dx}px`; archCard.style.top=`${cr.top+dy}px`;
+            void archCard.offsetWidth; archCard.classList.add('sucked-in');
+            setTimeout(triggerVictory,1000);
+        }
+    }
+    archCard.addEventListener('mousedown',e=>{
+        isDrag=true; const r=archCard.getBoundingClientRect();
+        cOff={x:e.clientX-r.left,y:e.clientY-r.top}; archCard.style.transition='none';
+    });
+    window.addEventListener('mousemove',e=>onCardMove(e.clientX,e.clientY));
+    window.addEventListener('mouseup',()=>isDrag=false);
+    archCard.addEventListener('touchstart',e=>{
+        e.preventDefault(); isDrag=true; const r=archCard.getBoundingClientRect();
+        cOff={x:e.touches[0].clientX-r.left,y:e.touches[0].clientY-r.top}; archCard.style.transition='none';
+    },{passive:false});
+    window.addEventListener('touchmove',e=>{
+        if(isDrag&&document.getElementById('step7').classList.contains('active'))
+            onCardMove(e.touches[0].clientX,e.touches[0].clientY);
+    },{passive:true});
+    window.addEventListener('touchend',()=>isDrag=false);
+</script>
+</body>
+</html>

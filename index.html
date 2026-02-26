@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Archive</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <script>
+        if (window.matchMedia('(pointer: coarse)').matches) {
+            window.location.replace('/mobile.html');
+        }
+    </script>
     <!-- 使用 Tailwind CSS 作为基础样式框架 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://npm.elemecdn.com/lxgw-wenkai-screen-webfont/style.css" media="print" onload="this.media='all'">
