@@ -325,7 +325,15 @@
         // ==========================================
         const tosContainer = document.getElementById('tosContainer');
         const tosClear = document.getElementById('tosClear');
+        const isTouchDevice = () => window.matchMedia('(pointer: coarse)').matches;
+        if (isTouchDevice()) {
+            // 触摸设备不支持鼠标遗罩，直接显示文字
+            document.getElementById('tosBlurred').style.display = 'none';
+            tosClear.style.webkitMaskImage = 'none';
+            tosClear.style.maskImage = 'none';
+        }
         tosContainer.addEventListener('mousemove', (e) => {
+            if (isTouchDevice()) return;
             if (!document.getElementById('step2').classList.contains('active')) return;
             const rect = tosContainer.getBoundingClientRect();
             const x = e.clientX - rect.left;
@@ -388,7 +396,6 @@
                 isCordDragging = false; pullCord.style.cursor = 'grab';
                 document.body.classList.toggle('dark-mode');
                 pullCord.style.transform = ''; pullCord.classList.add('cord-swing');
-                if(navigator.vibrate) navigator.vibrate(50);
             }
         });
         window.addEventListener('mouseup', () => {
@@ -409,7 +416,6 @@
                 isCordDragging = false;
                 document.body.classList.toggle('dark-mode');
                 pullCord.style.transform = ''; pullCord.classList.add('cord-swing');
-                if(navigator.vibrate) navigator.vibrate(50);
             }
         }, { passive: false });
         pullCord.addEventListener('touchend', () => {
@@ -460,6 +466,15 @@
             }
             lastMousePos = { x: e.clientX, y: e.clientY }; lastMouseTime = now;
         });
+        runawayBtn.addEventListener('touchstart', (e) => {
+            if (!document.getElementById('step1').classList.contains('active')) return;
+            e.preventDefault();
+            const parentRect = runawayBtn.parentElement.getBoundingClientRect();
+            const newX = Math.random() * (parentRect.width - 60) - (parentRect.width/2 - 30);
+            const newY = Math.random() * (parentRect.height - 60) - (parentRect.height/2 - 30);
+            runawayBtn.style.transform = `translate(${newX}px, ${newY}px)`;
+            recordFail(1, 5, "提示：慢慢移过去");
+        }, { passive: false });
         runawayBtn.addEventListener('click', () => { goToStep(2); });
 
         // 关卡 2：防假读滚动条
@@ -470,9 +485,20 @@
             if (e.deltaY > 60) {
                 e.preventDefault(); tosContainer.scrollTo({ top: 0, behavior: 'smooth' });
                 showToast("读太快了，重来");
-                recordFail(2, 5, "提示：点击文字区，用 ↓ 键翻到底");
+                recordFail(2, 5, isTouchDevice() ? "提示：慢慢滑到底" : "提示：点击文字区，用 ↓ 键翻到底");
             }
         }, { passive: false });
+        let lastTouchScrollY = 0, lastTouchScrollTime = 0;
+        tosContainer.addEventListener('touchmove', () => {
+            const now = Date.now(); const dy = tosContainer.scrollTop - lastTouchScrollY;
+            const speed = Math.abs(dy) / Math.max(now - lastTouchScrollTime, 1);
+            if (speed > 2 && dy > 0) {
+                tosContainer.scrollTo({ top: 0, behavior: 'smooth' });
+                showToast("滑太快了，重来");
+                recordFail(2, 3, "提示：慢慢滑到底");
+            }
+            lastTouchScrollY = tosContainer.scrollTop; lastTouchScrollTime = now;
+        }, { passive: true });
         window.addEventListener('keydown', (e) => {
             if (!document.getElementById('step2').classList.contains('active')) return;
             if (e.key === 'ArrowDown') {
@@ -654,10 +680,23 @@
             const svgRect = step5Svg.getBoundingClientRect();
             const x = clientX - svgRect.left, y = clientY - svgRect.top;
             captchaDot.style.left = (x - 10) + 'px'; captchaDot.style.top = (y - 10) + 'px';
-            captchaDot.style.pointerEvents = 'none';
-            const elUnder = document.elementFromPoint(clientX, clientY);
-            captchaDot.style.pointerEvents = 'auto';
-            if (elUnder !== captchaPath) {
+            // 用贝塞尔曲线距离判断，避免 elementFromPoint 在触摸端失效
+            const scaleX = svgRect.width / 500, scaleY = svgRect.height / 150;
+            // 曲线: M 50,75 C 150,180 350,-30 450,75，参数化计算最近点距离
+            const tolerance = isTouchDevice() ? 28 : 16;
+            function bezierY(t) {
+                return Math.pow(1-t,3)*75*scaleY + 3*Math.pow(1-t,2)*t*180*scaleY + 3*(1-t)*t*t*(-30)*scaleY + t*t*t*75*scaleY;
+            }
+            function bezierX(t) {
+                return Math.pow(1-t,3)*50*scaleX + 3*Math.pow(1-t,2)*t*150*scaleX + 3*(1-t)*t*t*350*scaleX + t*t*t*450*scaleX;
+            }
+            let minDist = Infinity;
+            for (let t = 0; t <= 1; t += 0.02) {
+                const bx = bezierX(t), by = bezierY(t);
+                const d = Math.sqrt((x-bx)**2 + (y-by)**2);
+                if (d < minDist) minDist = d;
+            }
+            if (minDist > tolerance) {
                 isDragging = false; captchaDot.style.cursor = 'grab'; captchaDot.style.boxShadow = 'none'; showToast("偏了，重来");
                 captchaDot.classList.add('bg-red-500'); setTimeout(() => captchaDot.classList.remove('bg-red-500'), 300);
                 resetDot(); recordFail(5, 5, "提示：匀速拖过去", 4000); return;
