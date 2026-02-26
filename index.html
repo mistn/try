@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+            const newX = e.clientX - cardOffset.x, newY = e.clientY - cardOffset.<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Archive</title>
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
     <!-- 使用 Tailwind CSS 作为基础样式框架 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://npm.elemecdn.com/lxgw-wenkai-screen-webfont/style.css" media="print" onload="this.media='all'">
@@ -323,8 +323,8 @@
                 </div>
             </div>
 
-            <!-- 图片验证码弹窗 -->
-            <div id="rc-popup" class="absolute top-full left-1/2 transform -translate-x-1/2 mt-4 bg-white w-[380px] shadow-[0_5px_30px_rgba(0,0,0,0.6)] border border-[#ccc] z-50 flex flex-col hidden opacity-0 transition-opacity duration-300 pointer-events-none">
+            <!-- 图片验证码弹窗 (已修改为 fixed 居中，防止被底部裁切) -->
+            <div id="rc-popup" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white w-[380px] shadow-[0_10px_50px_rgba(0,0,0,0.8)] border border-[#ccc] z-[100] flex flex-col hidden opacity-0 transition-opacity duration-300 pointer-events-none">
                 <div class="bg-[#1a73e8] text-white p-5 flex flex-col gap-1">
                     <span class="text-sm tracking-wider">请选择包含</span>
                     <span class="text-4xl font-bold tracking-widest mt-1 mb-1">自行车</span>
