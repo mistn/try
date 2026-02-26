@@ -100,7 +100,7 @@
         #pullCord {
             position: fixed; top: -10px; right: 80px; width: 4px; height: 120px;
             background: #d1d5db; z-index: 100; transform-origin: top center; cursor: grab;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1); touch-action: none;
         }
         #pullCord::after {
             content: ''; position: absolute; bottom: -12px; left: -6px; width: 16px; height: 16px;
@@ -147,7 +147,7 @@
 
     <!-- 关卡 1：社恐关闭键 -->
     <div id="step1" class="step-container active bg-gray-50/50">
-        <div class="glass-panel w-[400px] h-[300px] rounded-3xl flex flex-col items-center justify-center relative shadow-2xl">
+        <div class="glass-panel w-[min(400px,88vw)] h-[min(300px,60vh)] rounded-3xl flex flex-col items-center justify-center relative shadow-2xl">
             <button id="runawayBtn" class="absolute top-5 right-5 w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-black transition-colors" style="transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 1L13 13M1 13L13 1"></path></svg>
             </button>
@@ -158,7 +158,7 @@
 
     <!-- 关卡 2：防假读协议 + 🌟 Aha 探照灯透视镜 -->
     <div id="step2" class="step-container bg-white">
-        <div class="w-[500px] h-[75vh] max-h-[600px] flex flex-col relative">
+        <div class="w-[min(500px,92vw)] h-[75vh] max-h-[600px] flex flex-col relative">
             <h2 class="text-2xl font-bold mb-6 text-center tracking-tighter kinetic-title inline-block origin-bottom">服务条款</h2>
             
             <!-- 透视镜结构包裹器 -->
@@ -185,7 +185,7 @@
 
     <!-- 关卡 3：手机号滑动条地狱 + 验证码陷阱 -->
     <div id="step3" class="step-container bg-white">
-        <div class="w-[500px] flex flex-col items-center">
+        <div class="w-[min(500px,92vw)] flex flex-col items-center">
             <h2 class="text-3xl font-bold mb-2 tracking-tighter kinetic-title inline-block origin-bottom">绑定手机</h2>
             
             <div id="step3-state1" class="w-full flex flex-col items-center transition-opacity duration-500">
@@ -213,7 +213,7 @@
 
     <!-- 关卡 4：俄罗斯套娃 + 情绪震动 + 刮刮乐 -->
     <div id="step4" class="step-container bg-white">
-        <div class="w-[450px] flex flex-col">
+        <div class="w-[min(450px,92vw)] flex flex-col">
             <h2 class="text-3xl font-bold mb-2 tracking-tighter kinetic-title inline-block origin-bottom">设置密钥</h2>
             <p class="text-sm text-gray-400 mb-8">带情绪的符号会引起不适，请保持冷静。</p>
             
@@ -234,7 +234,7 @@
 
     <!-- 关卡 5：通电火线人机验证 -->
     <div id="step5" class="step-container bg-gray-50">
-        <div class="w-[600px] glass-panel p-10 rounded-3xl flex flex-col items-center">
+        <div class="w-[min(600px,92vw)] glass-panel p-5 sm:p-10 rounded-3xl flex flex-col items-center">
             <h2 class="text-xl font-semibold mb-2 tracking-wide kinetic-title inline-block origin-bottom">轨迹验证</h2>
             <p class="text-xs text-gray-500 mb-8">请沿轨迹拖动黑点至终点。偏离轨迹将重置。</p>
             <div class="relative w-full h-[150px] border border-gray-100 rounded-xl bg-white flex items-center justify-center overflow-hidden">
@@ -243,14 +243,14 @@
                     <path id="captchaPath" d="M 50,75 C 150,180 350,-30 450,75" fill="none" stroke="rgba(0,0,0,0.01)" stroke-width="16" stroke-linecap="round" style="pointer-events: stroke;" class="pointer-events-auto" />
                     <circle cx="450" cy="75" r="8" fill="none" stroke="#000" stroke-width="2"/>
                 </svg>
-                <div id="captchaDot" class="absolute w-5 h-5 bg-black rounded-full cursor-grab" style="left: 40px; top: 65px; transition: box-shadow 0.2s;"></div>
+                <div id="captchaDot" class="absolute w-5 h-5 bg-black rounded-full cursor-grab" style="left: 40px; top: 65px; transition: box-shadow 0.2s; touch-action: none;"></div>
             </div>
         </div>
     </div>
 
     <!-- 关卡 6：牵一发而动全身 (点灯游戏) -->
     <div id="step6" class="step-container bg-white">
-        <div class="w-[400px] flex flex-col items-center">
+        <div class="w-[min(400px,88vw)] flex flex-col items-center">
             <h2 class="text-2xl font-bold mb-2 tracking-tighter kinetic-title inline-block origin-bottom">隐私偏好</h2>
             <p class="text-sm text-gray-500 mb-10 text-center">系统默认开启所有订阅。<br>如需取消，请关闭以下所有开关。</p>
             <div class="grid grid-cols-3 gap-x-8 gap-y-10" id="toggleGrid"></div>
@@ -269,17 +269,24 @@
             <p class="text-gray-500 mb-6 font-mono tracking-widest text-sm uppercase">Trash Can / 销毁区</p>
             <div id="blackHole"></div>
         </div>
-        <div id="archiveCard" class="absolute bottom-1/4 w-[300px] bg-white rounded-xl shadow-xl border border-gray-200 p-6 flex flex-col cursor-grab transition-transform" style="touch-action: none;">
+        <div id="archiveCard" class="absolute bottom-1/4 w-[min(300px,80vw)] bg-white rounded-xl shadow-xl border border-gray-200 p-6 flex flex-col cursor-grab transition-transform" style="touch-action: none;">
             <div class="border-b border-gray-100 pb-3 mb-3 flex justify-between items-center">
                 <h3 class="font-bold text-lg">您的绝密档案</h3>
                 <span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">不可逆</span>
             </div>
             <p class="text-sm text-gray-500 mb-2">经过重重折磨，档案已生成。</p>
-            <p class="text-xs text-gray-400">将此卡片拖入上方黑洞，彻底结束这场闹剧。</p>
+            <p class="text-xs text-gray-400">拖进上方黑洞。</p>
         </div>
         <div id="victoryText" class="absolute inset-0 flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-1000 z-50">
-            <h1 class="text-6xl font-black tracking-tighter mb-4 text-black kinetic-title inline-block">You Survived.</h1>
-            <p class="text-gray-600 tracking-widest text-sm bg-white/80 px-4 py-2 rounded-full shadow-sm">恭喜通关。你不仅战胜了折磨，还体验了魔法。</p>
+            <h1 class="text-6xl font-black tracking-tighter mb-6 text-black kinetic-title inline-block">You Survived.</h1>
+            <div class="bg-white/90 rounded-2xl px-8 py-6 shadow-sm text-center" style="max-width:280px">
+                <p class="text-xs font-mono tracking-[0.2em] text-gray-400 uppercase mb-4">折磨报告</p>
+                <div class="flex justify-around gap-6 mb-4">
+                    <div><div id="finalFailCount" class="text-3xl font-black">0</div><div class="text-xs text-gray-400 mt-1">失败次数</div></div>
+                    <div><div id="finalMinutes" class="text-3xl font-black">-</div><div class="text-xs text-gray-400 mt-1">浪费分钟</div></div>
+                </div>
+                <p class="text-xs text-gray-400">下次别点进来了</p>
+            </div>
         </div>
     </div>
 
@@ -353,6 +360,7 @@
         // ==========================================
         let failData = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
         let totalFails = 0;
+        const startTime = Date.now();
         const failCounterWidget = document.getElementById('failCounterWidget');
         const failCountDisplay = document.getElementById('failCount');
         let toastTimeout;
@@ -409,6 +417,27 @@
                 pullCord.style.transform = ''; pullCord.classList.add('cord-swing');
             }
         });
+        pullCord.addEventListener('touchstart', (e) => {
+            isCordDragging = true; startCordY = e.touches[0].clientY;
+            pullCord.classList.remove('cord-swing');
+        }, { passive: true });
+        pullCord.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const dy = Math.max(0, e.touches[0].clientY - startCordY);
+            pullCord.style.transform = `scaleY(${1 + dy/200})`;
+            if (dy > 80) {
+                isCordDragging = false;
+                document.body.classList.toggle('dark-mode');
+                pullCord.style.transform = ''; pullCord.classList.add('cord-swing');
+                if(navigator.vibrate) navigator.vibrate(50);
+            }
+        }, { passive: false });
+        pullCord.addEventListener('touchend', () => {
+            if (isCordDragging) {
+                isCordDragging = false;
+                pullCord.style.transform = ''; pullCord.classList.add('cord-swing');
+            }
+        });
 
         // 聚光灯表单引力场
         const spotlightInputs = document.querySelectorAll('[data-spotlight="true"]');
@@ -447,7 +476,7 @@
                 const newX = Math.random() * (parentRect.width - 40) - (parentRect.width/2 - 20);
                 const newY = Math.random() * (parentRect.height - 40) - (parentRect.height/2 - 20);
                 runawayBtn.style.transform = `translate(${newX}px, ${newY}px)`;
-                recordFail(1, 10, "💡 官方外挂：像树懒一样，极其缓慢地移动过去。");
+                recordFail(1, 10, "提示：慢慢移过去");
             }
             lastMousePos = { x: e.clientX, y: e.clientY }; lastMouseTime = now;
         });
@@ -460,8 +489,8 @@
             if (!document.getElementById('step2').classList.contains('active')) return;
             if (e.deltaY > 60) {
                 e.preventDefault(); tosContainer.scrollTo({ top: 0, behavior: 'smooth' });
-                showToast("您阅读得太快了，请慢下来品味。");
-                recordFail(2, 5, "💡 官方外挂：点击文本框后，用键盘「下方向键(↓)」作弊拉到底。");
+                showToast("读太快了，重来");
+                recordFail(2, 5, "提示：点击文字区，用 ↓ 键翻到底");
             }
         }, { passive: false });
 
@@ -487,9 +516,25 @@
             let val = parseInt(e.target.value), offset = Math.floor(Math.random() * 31) - 15;
             if (offset === 0) offset = 5; 
             val += offset; phoneSlider.value = val; phoneDisplay.textContent = val;
-            showToast("Oops，手指抖了一下，数值偏移了。");
+            showToast("手抖了");
         });
 
+        let smsCountdownTimer = null;
+        function startSmsCountdown() {
+            clearInterval(smsCountdownTimer);
+            let countVal = 60;
+            sendCodeBtn.textContent = `重发 (${countVal}s)`;
+            sendCodeBtn.disabled = true; sendCodeBtn.classList.add('opacity-50', 'cursor-not-allowed'); sendCodeBtn.classList.remove('hover:scale-105');
+            smsCountdownTimer = setInterval(() => {
+                countVal = Math.max(0, countVal - 0.3);
+                sendCodeBtn.textContent = `重发 (${Math.ceil(countVal)}s)`;
+                if (countVal <= 0) {
+                    clearInterval(smsCountdownTimer);
+                    sendCodeBtn.textContent = '重新发送'; sendCodeBtn.disabled = false;
+                    sendCodeBtn.classList.remove('opacity-50', 'cursor-not-allowed'); sendCodeBtn.classList.add('hover:scale-105');
+                }
+            }, 1000);
+        }
         sendCodeBtn.addEventListener('click', () => {
             step3State1.classList.add('opacity-0');
             setTimeout(() => {
@@ -497,7 +542,8 @@
                 confirmPhoneDisplay.textContent = phoneSlider.value; 
                 setTimeout(() => step3State2.classList.remove('opacity-0'), 50);
             }, 500);
-            showToast("验证码已发送，请查收您的手机。");
+            showToast("已发送");
+            startSmsCountdown();
         });
 
         backToPhoneBtn.addEventListener('click', () => {
@@ -507,14 +553,14 @@
                 setTimeout(() => step3State1.classList.remove('opacity-0'), 50);
             }, 500);
             smsCodeInput.value = ''; 
-            recordFail(3, 3, "💡 官方外挂：其实测试验证码固定是 000000，随便留个号码填 000000 就能过！", 8000);
+            recordFail(3, 3, "提示：万能码是 000000", 5000);
         });
 
         verifyCodeBtn.addEventListener('click', () => {
             if (smsCodeInput.value === '000000') goToStep(4);
             else {
-                showToast("验证码错误！请检查您是否填错了手机号。");
-                recordFail(3, 3, "💡 官方外挂：别猜了，测试用的万能验证码是 000000！", 8000);
+                showToast("验证码错误");
+                recordFail(3, 3, "提示：万能码是 000000", 5000);
             }
         });
 
@@ -568,7 +614,7 @@
         });
 
         pwdInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Backspace' || e.key === 'Delete') recordFail(4, 20, `💡 官方外挂：试试这个作弊密码 👉 A11111111111111225${currentMonth}`, 8000);
+            if (e.key === 'Backspace' || e.key === 'Delete') recordFail(4, 20, `提示：A11111111111111225${currentMonth}`, 6000);
         });
 
         const scratchCanvas = document.getElementById('scratchCanvas');
@@ -602,29 +648,46 @@
 
         // 关卡 5：极窄火线滑块验证
         const captchaDot = document.getElementById('captchaDot'), captchaPath = document.getElementById('captchaPath'), step5Svg = document.getElementById('captchaSvg');
-        let isDragging = false; const dotStartPos = { left: 40, top: 65 }; 
+        let isDragging = false;
+
+        function getDotStartPos() {
+            const r = step5Svg.getBoundingClientRect();
+            return { left: Math.round(50 * r.width / 500) - 10, top: 65 };
+        }
+        function resetDot() {
+            const pos = getDotStartPos();
+            captchaDot.style.transition = 'all 0.3s ease';
+            captchaDot.style.left = pos.left + 'px'; captchaDot.style.top = pos.top + 'px';
+            setTimeout(() => { captchaDot.style.transition = 'box-shadow 0.2s'; }, 300);
+        }
+        requestAnimationFrame(() => { const p = getDotStartPos(); captchaDot.style.left = p.left + 'px'; captchaDot.style.top = p.top + 'px'; });
+
+        function handleCaptchaMove(clientX, clientY) {
+            if (!isDragging || !document.getElementById('step5').classList.contains('active')) return;
+            const svgRect = step5Svg.getBoundingClientRect();
+            const x = clientX - svgRect.left, y = clientY - svgRect.top;
+            captchaDot.style.left = (x - 10) + 'px'; captchaDot.style.top = (y - 10) + 'px';
+            captchaDot.style.pointerEvents = 'none';
+            const elUnder = document.elementFromPoint(clientX, clientY);
+            captchaDot.style.pointerEvents = 'auto';
+            if (elUnder !== captchaPath) {
+                isDragging = false; captchaDot.style.cursor = 'grab'; captchaDot.style.boxShadow = 'none'; showToast("偏了，重来");
+                captchaDot.classList.add('bg-red-500'); setTimeout(() => captchaDot.classList.remove('bg-red-500'), 300);
+                resetDot(); recordFail(5, 5, "提示：匀速拖过去", 4000); return;
+            }
+            if (x > svgRect.width * 0.88) { isDragging = false; showToast("验证成功！"); setTimeout(() => goToStep(6), 1000); }
+        }
 
         captchaDot.addEventListener('mousedown', () => { isDragging = true; captchaDot.style.cursor = 'grabbing'; captchaDot.style.boxShadow = '0 0 0 4px rgba(0,0,0,0.1)'; });
+        captchaDot.addEventListener('touchstart', (e) => { e.preventDefault(); isDragging = true; captchaDot.style.boxShadow = '0 0 0 4px rgba(0,0,0,0.1)'; }, { passive: false });
         window.addEventListener('mouseup', () => {
             if (isDragging) { isDragging = false; captchaDot.style.cursor = 'grab'; captchaDot.style.boxShadow = 'none'; resetDot(); }
         });
-        window.addEventListener('mousemove', (e) => {
-            if (!isDragging || !document.getElementById('step5').classList.contains('active')) return;
-            const svgRect = step5Svg.getBoundingClientRect(), x = e.clientX - svgRect.left, y = e.clientY - svgRect.top;
-            captchaDot.style.left = (x - 10) + 'px'; captchaDot.style.top = (y - 10) + 'px';
-            captchaDot.style.pointerEvents = 'none'; const elUnderMouse = document.elementFromPoint(e.clientX, e.clientY); captchaDot.style.pointerEvents = 'auto'; 
-
-            if (elUnderMouse !== captchaPath) {
-                isDragging = false; captchaDot.style.cursor = 'grab'; captchaDot.style.boxShadow = 'none'; showToast("偏离轨迹，已重置。");
-                captchaDot.classList.add('bg-red-500'); setTimeout(() => captchaDot.classList.remove('bg-red-500'), 300);
-                resetDot(); recordFail(5, 5, "💡 官方外挂：大胆匀速拉过去！", 5000); return;
-            }
-            if (x > 440) { isDragging = false; showToast("验证成功！"); setTimeout(() => goToStep(6), 1000); }
+        window.addEventListener('touchend', () => {
+            if (isDragging) { isDragging = false; captchaDot.style.boxShadow = 'none'; resetDot(); }
         });
-        function resetDot() {
-            captchaDot.style.transition = 'all 0.3s ease'; captchaDot.style.left = dotStartPos.left + 'px'; captchaDot.style.top = dotStartPos.top + 'px';
-            setTimeout(() => { captchaDot.style.transition = 'box-shadow 0.2s'; }, 300);
-        }
+        window.addEventListener('mousemove', (e) => { handleCaptchaMove(e.clientX, e.clientY); });
+        window.addEventListener('touchmove', (e) => { if (isDragging) handleCaptchaMove(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
 
         // 关卡 6：牵一发而动全身退订
         const toggleGrid = document.getElementById('toggleGrid'), finalSubmitBtn = document.getElementById('finalSubmitBtn'), resetStep6Btn = document.getElementById('resetStep6Btn');
@@ -643,7 +706,7 @@
         function handleToggleClick(index) {
             const row = Math.floor(index / gridSize); const col = index % gridSize;
             flip(row, col); flip(row - 1, col); flip(row + 1, col); flip(row, col - 1); flip(row, col + 1);
-            renderToggles(); recordFail(6, 25, "💡 官方外挂：依次点击四个角，最后再点正中间那一个！", 8000);
+            renderToggles(); recordFail(6, 25, "提示：先点四角，再点中间", 6000);
         }
         function flip(r, c) { if (r >= 0 && r < gridSize && c >= 0 && c < gridSize) { const idx = r * gridSize + c; togglesState[idx] = togglesState[idx] === 1 ? 0 : 1; } }
         function checkFinalWin() {
@@ -653,6 +716,12 @@
         renderToggles();
         resetStep6Btn.addEventListener('click', () => { togglesState = [1, 1, 1, 1, 1, 1, 1, 1, 1]; renderToggles(); });
         finalSubmitBtn.addEventListener('click', () => { failCounterWidget.classList.add('hidden'); goToStep(7); });
+
+        function triggerVictory() {
+            document.getElementById('finalFailCount').textContent = totalFails;
+            document.getElementById('finalMinutes').textContent = Math.max(1, Math.ceil((Date.now() - startTime) / 60000));
+            victoryText.classList.remove('opacity-0', 'pointer-events-none');
+        }
 
         // 关卡 7：黑洞销毁结局
         const archiveCard = document.getElementById('archiveCard'), blackHole = document.getElementById('blackHole'), victoryText = document.getElementById('victoryText');
@@ -675,10 +744,33 @@
                 isCardDragging = false;
                 archiveCard.style.left = `${holeCenter.x - cardRect.width/2}px`; archiveCard.style.top = `${holeCenter.y - cardRect.height/2}px`;
                 void archiveCard.offsetWidth; archiveCard.classList.add('sucked-in');
-                setTimeout(() => { victoryText.classList.remove('opacity-0', 'pointer-events-none'); }, 1000);
+                setTimeout(triggerVictory, 1000);
             }
         });
         window.addEventListener('mouseup', () => { if (isCardDragging) { isCardDragging = false; archiveCard.style.cursor = 'grab'; archiveCard.style.transition = 'transform 0.3s ease'; } });
+        archiveCard.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            isCardDragging = true; const rect = archiveCard.getBoundingClientRect();
+            cardOffset.x = e.touches[0].clientX - rect.left; cardOffset.y = e.touches[0].clientY - rect.top;
+            archiveCard.style.transition = 'none';
+        }, { passive: false });
+        window.addEventListener('touchmove', (e) => {
+            if (!isCardDragging || !document.getElementById('step7').classList.contains('active')) return;
+            const touch = e.touches[0];
+            const newX = touch.clientX - cardOffset.x, newY = touch.clientY - cardOffset.y;
+            archiveCard.style.left = `${newX}px`; archiveCard.style.top = `${newY}px`; archiveCard.style.bottom = 'auto';
+            const holeRect = blackHole.getBoundingClientRect(), cardRect = archiveCard.getBoundingClientRect();
+            const holeCenter = { x: holeRect.left + holeRect.width/2, y: holeRect.top + holeRect.height/2 };
+            const cardCenter = { x: cardRect.left + cardRect.width/2, y: cardRect.top + cardRect.height/2 };
+            const dist = Math.sqrt(Math.pow(holeCenter.x - cardCenter.x, 2) + Math.pow(holeCenter.y - cardCenter.y, 2));
+            if (dist < 80) {
+                isCardDragging = false;
+                archiveCard.style.left = `${holeCenter.x - cardRect.width/2}px`; archiveCard.style.top = `${holeCenter.y - cardRect.height/2}px`;
+                void archiveCard.offsetWidth; archiveCard.classList.add('sucked-in');
+                setTimeout(triggerVictory, 1000);
+            }
+        }, { passive: true });
+        window.addEventListener('touchend', () => { if (isCardDragging) { isCardDragging = false; archiveCard.style.transition = 'transform 0.3s ease'; } });
 
     </script>
 </body>
