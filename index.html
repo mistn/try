@@ -187,8 +187,6 @@
     <!-- 关卡 3：手机号滑动条地狱 + 验证码陷阱 -->
     <div id="step3" class="step-container bg-white">
         <div class="w-[min(500px,92vw)] flex flex-col items-center">
-            <h2 class="text-3xl font-bold mb-2 tracking-tighter kinetic-title inline-block origin-bottom">绑定手机</h2>
-            
             <div id="step3-state1" class="w-full flex flex-col items-center transition-opacity duration-500">
                 <p class="text-sm text-gray-400 mb-10 text-center">为了您的安全，请拖动滑块选择您的真实手机号码。</p>
                 <div class="text-4xl font-mono tracking-widest mb-8 text-black" id="phoneDisplay">13000000000</div>
@@ -511,7 +509,7 @@
         let smsCountdownTimer = null;
         function startSmsCountdown() {
             clearInterval(smsCountdownTimer);
-            let countVal = 60;
+            let countVal = 30;
             sendCodeBtn.textContent = `重发 (${countVal}s)`;
             sendCodeBtn.disabled = true; sendCodeBtn.classList.add('opacity-50', 'cursor-not-allowed'); sendCodeBtn.classList.remove('hover:scale-105');
             smsCountdownTimer = setInterval(() => {
