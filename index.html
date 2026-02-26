@@ -493,6 +493,13 @@
                 recordFail(2, 5, "提示：点击文字区，用 ↓ 键翻到底");
             }
         }, { passive: false });
+        tosContainer.addEventListener('keydown', (e) => {
+            if (!document.getElementById('step2').classList.contains('active')) return;
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                tosContainer.scrollBy({ top: 8, behavior: 'auto' });
+            }
+        });
 
         tosContainer.addEventListener('scroll', () => {
             if (tosContainer.scrollHeight - tosContainer.scrollTop - tosContainer.clientHeight < 10) {
