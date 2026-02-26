@@ -315,25 +315,6 @@
         animateSkew();
 
         // ==========================================
-        // 🌟 Aha 特效 2：磁吸按钮 (iPadOS 风格)
-        // ==========================================
-        document.querySelectorAll('.magnetic-btn').forEach(btn => {
-            btn.addEventListener('mousemove', function(e) {
-                // 如果按钮是禁用状态则不吸附
-                if(this.classList.contains('cursor-not-allowed') || this.classList.contains('pointer-events-none')) return;
-                const rect = this.getBoundingClientRect();
-                const x = e.clientX - rect.left - rect.width / 2;
-                const y = e.clientY - rect.top - rect.height / 2;
-                this.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
-                this.style.transition = 'none'; // 瞬间跟随
-            });
-            btn.addEventListener('mouseleave', function() {
-                this.style.transform = 'translate(0px, 0px)';
-                this.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)'; // 优雅回弹
-            });
-        });
-
-        // ==========================================
         // 初始化服务条款内容 (填充文字)
         // ==========================================
         const tosContentStr = Array(30).fill(0).map((_, i) => `<p class="mb-4">第 ${i+1} 条：用户不得使用任何自动化脚本或快速滚动设备跳过本协议。若系统检测到您的阅读速度超过人类生理极限，系统将出于对您视力保护的考虑，自动将您的阅读进度重置为零。这种设计并非出于恶意，而是我们对古典阅读精神的一种现代致敬。请您深呼吸，感受汉字之美，一字一句地向下浏览。</p>`).join('');
