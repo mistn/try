@@ -5,18 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Archive</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
-        <script>
-            (function() {
-                var isMobile = window.matchMedia('(pointer: coarse)').matches
-                    || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
-                    || window.innerWidth < 768;
-                if (isMobile && !location.pathname.includes('mobile.html')) {
-                    var target = location.pathname.replace('index.html', 'mobile.html');
-                    if (target === location.pathname) target = 'mobile.html';
-                    window.location.replace(target);
-                }
-            })();
-        </script>
     <!-- 使用 Tailwind CSS 作为基础样式框架 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://npm.elemecdn.com/lxgw-wenkai-screen-webfont/style.css" media="print" onload="this.media='all'">
@@ -35,6 +23,12 @@
             overflow: hidden; 
             user-select: none;
             transition: filter 0.8s ease;
+        }
+
+        /* 桌面端硬性拦截 */
+        #mobileOverlay { display: none; }
+        @media (max-width: 768px), (hover: none) and (pointer: coarse) {
+            #mobileOverlay { display: flex; }
         }
 
         body.dark-mode { filter: invert(1) hue-rotate(180deg); }
@@ -56,7 +50,6 @@
             line-height: 1.8;
         }
 
-        /* 🌟 Aha 特效：Q弹阻尼开关 */
         .ios-toggle {
             appearance: none; width: 50px; height: 30px; background: var(--text-color);
             border-radius: 30px; position: relative; cursor: pointer; outline: none;
@@ -65,7 +58,6 @@
         .ios-toggle::after {
             content: ''; position: absolute; top: 2px; left: 22px; width: 22px; height: 22px;
             background-color: var(--bg-color); border-radius: 50%;
-            /* 果冻回弹动画 */
             transition: left 0.5s cubic-bezier(0.68, -0.6, 0.32, 1.6), background-color 0.3s;
         }
         .ios-toggle:not(:checked) { background: var(--bg-color); }
@@ -113,7 +105,7 @@
         #pullCord {
             position: fixed; top: -10px; right: 80px; width: 4px; height: 120px;
             background: #d1d5db; z-index: 100; transform-origin: top center; cursor: grab;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.1); touch-action: none;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
         }
         #pullCord::after {
             content: ''; position: absolute; bottom: -12px; left: -6px; width: 16px; height: 16px;
@@ -132,6 +124,25 @@
         #scratchCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer; z-index: 10; border-radius: 4px; }
         #secretPasswordDisplay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-family: monospace; font-size: 1.2rem; letter-spacing: 2px; color: black; background: #f3f4f6; border-radius: 4px; z-index: 5; border: 1px dashed #ccc;}
 
+        /* 逼真人机验证的专属样式 */
+        .rc-tile-wrapper { background: white; overflow: hidden; position: relative; cursor: pointer; }
+        .rc-tile {
+            background-image: url('https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=400&q=80');
+            background-size: 400% 400%;
+            width: 100%; height: 100%;
+            transition: transform 0.1s ease;
+        }
+        .rc-tile-wrapper.selected .rc-tile { transform: scale(0.85); }
+        .rc-tile-check {
+            position: absolute; top: 3px; left: 3px;
+            width: 20px; height: 20px;
+            background: #1a73e8; border-radius: 50%; color: white;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; transform: scale(0); transition: all 0.1s ease;
+            z-index: 10; box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+        .rc-tile-wrapper.selected .rc-tile-check { opacity: 1; transform: scale(1); }
+
         #blackHole {
             width: 150px; height: 150px; border-radius: 50%; background: radial-gradient(circle at center, #000 0%, #1a1a1a 40%, transparent 70%);
             box-shadow: 0 0 50px 20px rgba(0,0,0,0.8), inset 0 0 20px rgba(255,255,255,0.2);
@@ -140,7 +151,6 @@
         @keyframes rotateHole { 100% { transform: rotate(360deg); } }
         .sucked-in { transform: scale(0) rotate(720deg) !important; opacity: 0 !important; filter: blur(10px); transition: all 1s cubic-bezier(0.5, 0, 0, 1) !important; }
 
-        /* 🌟 Aha 特效：磁吸按钮 */
         .magnetic-btn {
             transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
             will-change: transform;
@@ -149,40 +159,40 @@
 </head>
 <body class="w-screen h-screen relative">
 
+    <!-- 移动端拦截层 -->
+    <div id="mobileOverlay" class="fixed inset-0 bg-black text-white z-[9999] flex-col items-center justify-center p-6 text-center">
+        <h1 class="text-3xl font-bold mb-4 tracking-widest">电脑专属</h1>
+        <p class="text-gray-400 text-sm tracking-wider">这玩意儿需要用鼠标精细操作，<br>手机上实在没法玩呀，去借台电脑吧~</p>
+    </div>
+
     <div id="spotlightOverlay"></div>
-    <div id="pullCord" title="往下拉试试"></div>
+    <div id="pullCord"></div>
 
     <div id="failCounterWidget" class="fixed bottom-6 right-8 z-40 text-[10px] text-gray-300 font-mono tracking-widest hidden transition-opacity duration-1000">
-        FRUSTRATION INDEX: <span id="failCount" class="text-black font-bold">0</span>
+        翻车次数: <span id="failCount" class="text-black font-bold">0</span>
     </div>
 
     <div id="toast" class="fixed top-10 left-1/2 z-50 hidden glass-panel px-6 py-3 rounded-full text-sm font-medium tracking-widest pointer-events-none text-black border border-gray-200 shadow-sm whitespace-nowrap"></div>
 
-    <!-- 关卡 1：社恐关闭键 -->
+    <!-- 关卡 1：防误触关闭 -->
     <div id="step1" class="step-container active bg-gray-50/50">
-        <div class="glass-panel w-[min(400px,88vw)] h-[min(300px,60vh)] rounded-3xl flex flex-col items-center justify-center relative shadow-2xl">
+        <div class="glass-panel w-[400px] h-[300px] rounded-3xl flex flex-col items-center justify-center relative shadow-2xl">
             <button id="runawayBtn" class="absolute top-5 right-5 w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-black transition-colors" style="transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 1L13 13M1 13L13 1"></path></svg>
             </button>
-            <h1 class="text-3xl font-light tracking-tight mb-4 kinetic-title inline-block">欢迎探索未知</h1>
-            <p class="text-sm text-gray-500 tracking-widest uppercase">CLOSE TO CONTINUE</p>
+            <h1 class="text-3xl font-light tracking-tight mb-4 kinetic-title inline-block">第一关</h1>
+            <p class="text-sm text-gray-500 tracking-widest">把右上角那个叉叉点掉</p>
         </div>
     </div>
 
-    <!-- 关卡 2：防假读协议 + 🌟 Aha 探照灯透视镜 -->
+    <!-- 关卡 2：阅读限速 -->
     <div id="step2" class="step-container bg-white">
-        <div class="w-[min(500px,92vw)] h-[75vh] max-h-[600px] flex flex-col relative">
-            <h2 class="text-2xl font-bold mb-6 text-center tracking-tighter kinetic-title inline-block origin-bottom">服务条款</h2>
+        <div class="w-[500px] h-[75vh] max-h-[600px] flex flex-col relative">
+            <h2 class="text-2xl font-bold mb-6 text-center tracking-tighter kinetic-title inline-block origin-bottom">必读废话</h2>
             
-            <!-- 透视镜结构包裹器 -->
             <div id="tosContainer" class="flex-1 overflow-y-auto hide-scrollbar border-y border-gray-100 relative bg-white">
-                <!-- 幽灵层：用于撑开滚动条高度 -->
                 <div id="tosGhost" class="w-full py-6 px-4 font-wenkai text-transparent select-none pointer-events-none"></div>
-                
-                <!-- 模糊背景层 -->
                 <div id="tosBlurred" class="absolute top-0 left-0 w-full py-6 px-4 font-wenkai text-gray-800 blur-[5px] opacity-40 select-none pointer-events-none"></div>
-                
-                <!-- 清晰遮罩层：只有鼠标附近可见 -->
                 <div id="tosClear" class="absolute top-0 left-0 w-full py-6 px-4 font-wenkai text-gray-800 select-none pointer-events-none" 
                      style="-webkit-mask-image: radial-gradient(circle 80px at var(--mx, -100px) var(--my, -100px), black 40%, transparent 100%);">
                 </div>
@@ -190,47 +200,48 @@
 
             <div class="mt-6 flex justify-center z-10">
                 <button id="agreeBtn" class="magnetic-btn px-8 py-3 bg-gray-200 text-gray-400 rounded-full text-sm font-semibold tracking-widest cursor-not-allowed transition-colors duration-500">
-                    我已仔细阅读
+                    我都看完了
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- 关卡 3：手机号滑动条地狱 + 验证码陷阱 -->
+    <!-- 关卡 3：终端绑定 -->
     <div id="step3" class="step-container bg-white">
-        <div class="w-[min(500px,92vw)] relative" style="min-height:340px">
-            <div id="step3-state1" class="absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-500">
-                <p class="text-sm text-gray-400 mb-10 text-center">为了您的安全，请拖动滑块选择您的真实手机号码。</p>
+        <div class="w-[500px] flex flex-col items-center">
+            
+            <div id="step3-state1" class="w-full flex flex-col items-center transition-opacity duration-500">
+                <p class="text-sm text-gray-400 mb-10 text-center">手滑选一下你的手机号呗：</p>
                 <div class="text-4xl font-mono tracking-widest mb-8 text-black" id="phoneDisplay">13000000000</div>
                 <input type="range" id="phoneSlider" min="13000000000" max="19999999999" value="13000000000" step="1" class="w-full mb-6">
-                <p class="text-xs text-gray-400 mb-12">（禁用了键盘输入）</p>
+                <p class="text-xs text-gray-400 mb-12">（敲不了键盘，只能滑）</p>
                 <button id="sendCodeBtn" class="magnetic-btn px-10 py-3 bg-black text-white rounded-full text-sm font-semibold tracking-widest hover:scale-105">
-                    发送验证码
+                    获取验证码
                 </button>
             </div>
 
-            <div id="step3-state2" class="absolute inset-0 flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-500">
-                <p class="text-sm text-gray-400 mb-6 text-center">短信验证码已发送至：<br><span id="confirmPhoneDisplay" class="text-2xl font-mono font-bold text-black mt-3 inline-block tracking-widest"></span></p>
-                <input type="text" id="smsCodeInput" placeholder="点击输入" maxlength="6" class="w-2/3 border-b border-gray-300 py-3 text-center text-xl focus:outline-none transition-colors bg-transparent mb-8 tracking-[0.5em] font-mono" data-spotlight="true">
+            <div id="step3-state2" class="w-full flex flex-col items-center hidden opacity-0 transition-opacity duration-500">
+                <p class="text-sm text-gray-400 mb-6 text-center">验证码大概已经发到这个号上了：<br><span id="confirmPhoneDisplay" class="text-2xl font-mono font-bold text-black mt-3 inline-block tracking-widest"></span></p>
+                <input type="text" id="smsCodeInput" placeholder="在这敲验证码" maxlength="6" class="w-2/3 border-b border-gray-300 py-3 text-center text-xl focus:outline-none transition-colors bg-transparent mb-8 tracking-[0.5em] font-mono" data-spotlight="true">
                 <button id="verifyCodeBtn" class="magnetic-btn px-10 py-3 bg-black text-white rounded-full text-sm font-semibold tracking-widest hover:scale-105 mb-6">
-                    验证并继续
+                    确定
                 </button>
                 <button id="backToPhoneBtn" class="text-xs text-gray-400 hover:text-black underline underline-offset-4 transition-colors">
-                    收不到短信？返回修改号码
+                    号码滑错了，重选
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- 关卡 4：俄罗斯套娃 + 情绪震动 + 刮刮乐 -->
+    <!-- 关卡 4：安全密钥配置 -->
     <div id="step4" class="step-container bg-white">
-        <div class="w-[min(450px,92vw)] flex flex-col">
-            <h2 class="text-3xl font-bold mb-2 tracking-tighter kinetic-title inline-block origin-bottom">设置密钥</h2>
-            <p class="text-sm text-gray-400 mb-8">带情绪的符号会引起不适，请保持冷静。</p>
+        <div class="w-[450px] flex flex-col">
+            <h2 class="text-3xl font-bold mb-2 tracking-tighter kinetic-title inline-block origin-bottom">设个密码</h2>
+            <p class="text-sm text-gray-400 mb-8">咱们来设个刁钻点的密码吧。</p>
             
             <div class="flex items-end gap-4 mb-6">
-                <input type="password" id="passwordInput" placeholder="输入密码..." class="flex-1 border-b border-gray-300 py-3 text-lg focus:outline-none transition-colors bg-transparent placeholder-gray-300" data-spotlight="true">
-                <div class="scratch-container" title="刮开涂层查看密码">
+                <input type="password" id="passwordInput" placeholder="在这里敲密码..." class="flex-1 border-b border-gray-300 py-3 text-lg focus:outline-none transition-colors bg-transparent placeholder-gray-300" data-spotlight="true">
+                <div class="scratch-container">
                     <div id="secretPasswordDisplay">****</div>
                     <canvas id="scratchCanvas"></canvas>
                 </div>
@@ -238,129 +249,193 @@
 
             <div id="rulesContainer" class="flex flex-col gap-3 text-sm"></div>
             <button id="pwdNextBtn" class="magnetic-btn mt-10 px-8 py-3 bg-black text-white rounded-full text-sm font-semibold opacity-0 pointer-events-none transition-opacity duration-500 self-start hover:scale-105">
-                继续向后 &rarr;
+                搞定，下一步
             </button>
         </div>
     </div>
 
-    <!-- 关卡 5：通电火线人机验证 -->
+    <!-- 关卡 5：行为验证 -->
     <div id="step5" class="step-container bg-gray-50">
-        <div class="w-[min(600px,92vw)] glass-panel p-5 sm:p-10 rounded-3xl flex flex-col items-center">
-            <h2 class="text-xl font-semibold mb-2 tracking-wide kinetic-title inline-block origin-bottom">轨迹验证</h2>
-            <p class="text-xs text-gray-500 mb-8">请沿轨迹拖动黑点至终点。偏离轨迹将重置。</p>
+        <div class="w-[600px] glass-panel p-10 rounded-3xl flex flex-col items-center">
+            <h2 class="text-xl font-semibold mb-2 tracking-wide kinetic-title inline-block origin-bottom">手稳测试</h2>
+            <p class="text-xs text-gray-500 mb-8">顺着线把小黑点拖到终点。手别抖，出轨了就得重来。</p>
             <div class="relative w-full h-[150px] border border-gray-100 rounded-xl bg-white flex items-center justify-center overflow-hidden">
                 <svg id="captchaSvg" class="absolute w-full h-full pointer-events-none" viewBox="0 0 500 150">
                     <path d="M 50,75 C 150,180 350,-30 450,75" fill="none" stroke="#d1d5db" stroke-width="2" stroke-linecap="round" class="pointer-events-none" />
                     <path id="captchaPath" d="M 50,75 C 150,180 350,-30 450,75" fill="none" stroke="rgba(0,0,0,0.01)" stroke-width="16" stroke-linecap="round" style="pointer-events: stroke;" class="pointer-events-auto" />
                     <circle cx="450" cy="75" r="8" fill="none" stroke="#000" stroke-width="2"/>
                 </svg>
-                <div id="captchaDot" class="absolute w-5 h-5 bg-black rounded-full cursor-grab" style="left: 40px; top: 65px; transition: box-shadow 0.2s; touch-action: none;"></div>
+                <div id="captchaDot" class="absolute w-5 h-5 bg-black rounded-full cursor-grab" style="left: 40px; top: 65px; transition: box-shadow 0.2s;"></div>
             </div>
         </div>
     </div>
 
-    <!-- 关卡 6：牵一发而动全身 (点灯游戏) -->
+    <!-- 关卡 6：权限配置 -->
     <div id="step6" class="step-container bg-white">
-        <div class="w-[min(400px,88vw)] flex flex-col items-center">
-            <h2 class="text-2xl font-bold mb-2 tracking-tighter kinetic-title inline-block origin-bottom">隐私偏好</h2>
-            <p class="text-sm text-gray-500 mb-10 text-center">系统默认开启所有订阅。<br>如需取消，请关闭以下所有开关。</p>
+        <div class="w-[400px] flex flex-col items-center">
+            <h2 class="text-2xl font-bold mb-2 tracking-tighter kinetic-title inline-block origin-bottom">关灯挑战</h2>
+            <p class="text-sm text-gray-500 mb-10 text-center">把下面这些开关全部关掉，<br>咱们就能进入最后一步了。</p>
             <div class="grid grid-cols-3 gap-x-8 gap-y-10" id="toggleGrid"></div>
             <button id="resetStep6Btn" class="mt-8 text-xs text-gray-400 hover:text-black transition-colors underline underline-offset-4 tracking-widest">
-                重置所有开关
+                全乱了？点这重置
             </button>
             <button id="finalSubmitBtn" class="magnetic-btn mt-6 px-10 py-3 bg-black text-white rounded-full text-sm font-semibold tracking-widest opacity-30 pointer-events-none transition-all duration-500 hover:scale-105">
-                生成档案
+                终于搞定了
             </button>
         </div>
     </div>
 
-    <!-- 关卡 7：黑洞销毁结局 -->
-    <div id="step7" class="step-container bg-gray-100">
+    <!-- 关卡 7：逼真的人机验证 -->
+    <div id="step7" class="step-container bg-[#1a1a1a]">
+        <div class="flex flex-col items-center relative">
+            
+            <!-- 初始的 reCAPTCHA 勾选框 (Dark Mode) -->
+            <div id="rc-widget" class="bg-[#222] p-2 pl-4 pr-3 border border-[#444] rounded-[3px] shadow-sm flex items-center justify-between w-[304px] h-[78px] transition-all duration-300">
+                <div class="flex items-center gap-3">
+                    <div id="rc-checkbox-real" class="magnetic-btn w-7 h-7 border-[2px] border-[#c1c1c1] rounded-[2px] bg-white cursor-pointer flex items-center justify-center transition-all">
+                        <div id="rc-spin-real" class="w-5 h-5 border-[3px] border-[#f3f3f3] border-t-[#4a90e2] rounded-full animate-spin hidden"></div>
+                    </div>
+                    <span class="text-[14px] font-normal text-white tracking-wide">进行人机身份验证</span>
+                </div>
+                <div class="flex flex-col items-center justify-center mt-1">
+                    <svg class="w-8 h-8 text-[#4a90e2] mb-1 opacity-90" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15l-4-4 1.41-1.41L11 14.17l6.59-6.59L19 9l-8 8z"/></svg>
+                    <div class="text-[10px] text-[#999] tracking-tighter flex flex-col items-center leading-tight">
+                        <span>reCAPTCHA</span>
+                        <span class="scale-90 origin-top">隐私权 - 使用条款</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 成功后的 Cloudflare 状态 -->
+            <div id="cf-success" class="bg-[#333] p-4 border border-[#555] rounded-[3px] shadow-sm flex items-center justify-between w-[304px] h-[78px] hidden opacity-0 transition-opacity duration-500">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-[#34d058] flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                    </div>
+                    <span class="text-[16px] font-normal text-white tracking-wider">成功!</span>
+                </div>
+                <div class="flex flex-col items-end justify-center">
+                    <span class="text-orange-400 font-bold text-sm tracking-widest flex items-center">
+                        <svg class="w-5 h-5 mr-1" viewBox="0 0 24 24" fill="currentColor"><path d="M19.333 10.023A5.501 5.501 0 0014 5.5a5.498 5.498 0 00-4.885 2.877A4.5 4.5 0 004.5 13.5a4.5 4.5 0 00.354 1.758A4.001 4.001 0 005 23h13a4 4 0 001.333-7.758 5.467 5.467 0 000-5.219z"/></svg>
+                        CLOUDFLARE
+                    </span>
+                    <span class="text-[10px] text-[#aaa] mt-1 scale-90 origin-right">隐私 · 帮助</span>
+                </div>
+            </div>
+
+            <!-- 图片验证码弹窗 -->
+            <div id="rc-popup" class="absolute top-full left-1/2 transform -translate-x-1/2 mt-4 bg-white w-[380px] shadow-[0_5px_30px_rgba(0,0,0,0.6)] border border-[#ccc] z-50 flex flex-col hidden opacity-0 transition-opacity duration-300 pointer-events-none">
+                <div class="bg-[#1a73e8] text-white p-5 flex flex-col gap-1">
+                    <span class="text-sm tracking-wider">请选择包含</span>
+                    <span class="text-4xl font-bold tracking-widest mt-1 mb-1">自行车</span>
+                    <span class="text-sm tracking-wider">的所有图块</span>
+                </div>
+                <div class="p-[5px] bg-white relative">
+                    <div class="grid grid-cols-4 gap-[2px] w-full aspect-square bg-white" id="rc-grid">
+                        <!-- JS 动态生成 16 个方块 -->
+                    </div>
+                    <p id="rc-error-msg" class="text-red-600 text-xs mt-2 h-4 opacity-0 transition-opacity absolute bottom-[-20px] left-2">请重试。</p>
+                </div>
+                <div class="p-3 mt-4 border-t border-gray-200 flex justify-between items-center bg-white">
+                    <div class="flex gap-4 text-[#555]">
+                        <svg class="w-6 h-6 cursor-pointer hover:text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                        <svg class="w-6 h-6 cursor-pointer hover:text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+                        <svg class="w-6 h-6 cursor-pointer hover:text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <button class="bg-[#1a73e8] hover:bg-[#1557b0] text-white px-8 py-2.5 text-sm font-semibold rounded-[2px] transition-colors" id="rc-verify-btn">跳过</button>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- 关卡 8：终极销毁 -->
+    <div id="step8" class="step-container bg-gray-100">
         <div id="blackHoleContainer" class="absolute top-1/4 flex flex-col items-center">
-            <p class="text-gray-500 mb-6 font-mono tracking-widest text-sm uppercase">Trash Can / 销毁区</p>
+            <p class="text-gray-500 mb-6 font-mono tracking-widest text-sm uppercase">黑洞</p>
             <div id="blackHole"></div>
         </div>
-        <div id="archiveCard" class="absolute bottom-1/4 w-[min(300px,80vw)] bg-white rounded-xl shadow-xl border border-gray-200 p-6 flex flex-col cursor-grab transition-transform" style="touch-action: none;">
+        <div id="archiveCard" class="absolute bottom-1/4 w-[300px] bg-white rounded-xl shadow-xl border border-gray-200 p-6 flex flex-col cursor-grab transition-transform" style="touch-action: none;">
             <div class="border-b border-gray-100 pb-3 mb-3 flex justify-between items-center">
-                <h3 class="font-bold text-lg">您的绝密档案</h3>
-                <span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">不可逆</span>
+                <h3 class="font-bold text-lg">通关卡片</h3>
+                <span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">一去不回</span>
             </div>
-            <p class="text-sm text-gray-500 mb-2">经过重重折磨，档案已生成。</p>
-            <p class="text-xs text-gray-400">拖进上方黑洞。</p>
+            <p class="text-sm text-gray-500 mb-2">恭喜你熬到了最后！</p>
+            <p class="text-xs text-gray-400">把这小卡片扔进上面的黑洞，一切就结束啦。</p>
         </div>
         <div id="victoryText" class="absolute inset-0 flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-1000 z-50">
-            <h1 class="text-6xl font-black tracking-tighter mb-6 text-black kinetic-title inline-block">You Survived.</h1>
-            <div class="bg-white/90 rounded-2xl px-8 py-6 shadow-sm text-center" style="max-width:280px">
-                <p class="text-xs font-mono tracking-[0.2em] text-gray-400 uppercase mb-4">折磨报告</p>
-                <div class="flex justify-around gap-6 mb-4">
-                    <div><div id="finalFailCount" class="text-3xl font-black">0</div><div class="text-xs text-gray-400 mt-1">失败次数</div></div>
-                    <div><div id="finalMinutes" class="text-3xl font-black">-</div><div class="text-xs text-gray-400 mt-1">浪费分钟</div></div>
-                </div>
-                <p class="text-xs text-gray-400">下次别点进来了</p>
-            </div>
+            <h1 class="text-6xl font-black tracking-tighter mb-4 text-black kinetic-title inline-block">恭喜通关</h1>
+            <p class="text-gray-600 tracking-widest text-sm bg-white/80 px-4 py-2 rounded-full shadow-sm">太不容易了，感谢你忍受这漫长的折磨~</p>
         </div>
     </div>
 
     <script>
         // ==========================================
-        // 🌟 Aha 特效 1：流体动力学标题 (Kinetic Typography)
+        // 🌟 流体动力学标题
         // ==========================================
         let mouseX = 0;
         let skewTarget = 0;
         let currentSkewVal = 0;
         window.addEventListener('mousemove', (e) => {
-            skewTarget = (e.clientX - mouseX) * 0.05; // 速度缩放因子
+            skewTarget = (e.clientX - mouseX) * 0.05;
             mouseX = e.clientX;
         });
         function animateSkew() {
-            currentSkewVal += (skewTarget - currentSkewVal) * 0.1; // 弹簧缓动
+            currentSkewVal += (skewTarget - currentSkewVal) * 0.1;
             document.querySelectorAll('.kinetic-title').forEach(el => {
-                // 限制最大倾斜角度避免太夸张
                 const clampedSkew = Math.max(-15, Math.min(15, -currentSkewVal));
                 el.style.transform = `skewX(${clampedSkew}deg)`;
             });
-            skewTarget *= 0.9; // 阻尼衰减
+            skewTarget *= 0.9;
             requestAnimationFrame(animateSkew);
         }
         animateSkew();
 
         // ==========================================
-        // 初始化服务条款内容 (填充文字)
+        // 🌟 磁吸按钮
         // ==========================================
-        const tosContentStr = Array(30).fill(0).map((_, i) => `<p class="mb-4">第 ${i+1} 条：用户不得使用任何自动化脚本或快速滚动设备跳过本协议。若系统检测到您的阅读速度超过人类生理极限，系统将出于对您视力保护的考虑，自动将您的阅读进度重置为零。这种设计并非出于恶意，而是我们对古典阅读精神的一种现代致敬。请您深呼吸，感受汉字之美，一字一句地向下浏览。</p>`).join('');
+        document.querySelectorAll('.magnetic-btn').forEach(btn => {
+            btn.addEventListener('mousemove', function(e) {
+                if(this.classList.contains('cursor-not-allowed') || this.classList.contains('pointer-events-none')) return;
+                const rect = this.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width / 2;
+                const y = e.clientY - rect.top - rect.height / 2;
+                this.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
+                this.style.transition = 'none';
+            });
+            btn.addEventListener('mouseleave', function() {
+                this.style.transform = 'translate(0px, 0px)';
+                this.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+            });
+        });
+
+        // ==========================================
+        // 协议内容生成
+        // ==========================================
+        const tosContentStr = Array(30).fill(0).map((_, i) => `<p class="mb-4">第 ${i+1} 条：随便看看就行，全是废话。但千万别用滚轮滑太快，不然你会被清零重来的哦。耐心点慢慢来~</p>`).join('');
         document.getElementById('tosGhost').innerHTML = tosContentStr + '<div id="tosBottom" class="h-10 w-full"></div>';
         document.getElementById('tosBlurred').innerHTML = tosContentStr;
         document.getElementById('tosClear').innerHTML = tosContentStr;
 
         // ==========================================
-        // 🌟 Aha 特效 3：探照灯阅读器 (毛玻璃透视)
+        // 🌟 探照灯透视
         // ==========================================
         const tosContainer = document.getElementById('tosContainer');
         const tosClear = document.getElementById('tosClear');
-        const isTouchDevice = () => window.matchMedia('(pointer: coarse)').matches;
-        if (isTouchDevice()) {
-            // 触摸设备不支持鼠标遗罩，直接显示文字
-            document.getElementById('tosBlurred').style.display = 'none';
-            tosClear.style.webkitMaskImage = 'none';
-            tosClear.style.maskImage = 'none';
-        }
         tosContainer.addEventListener('mousemove', (e) => {
-            if (isTouchDevice()) return;
             if (!document.getElementById('step2').classList.contains('active')) return;
             const rect = tosContainer.getBoundingClientRect();
             const x = e.clientX - rect.left;
-            // Y坐标需要加上滚动条的偏移量，让光圈在容器内准确跟随内容
             const y = e.clientY - rect.top + tosContainer.scrollTop; 
             tosClear.style.setProperty('--mx', `${x}px`);
             tosClear.style.setProperty('--my', `${y}px`);
         });
 
         // ==========================================
-        // 以下为基础逻辑与原有交互代码
+        // 基础设施配置
         // ==========================================
         let failData = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
         let totalFails = 0;
-        const startTime = Date.now();
         const failCounterWidget = document.getElementById('failCounterWidget');
         const failCountDisplay = document.getElementById('failCount');
         let toastTimeout;
@@ -391,9 +466,10 @@
             document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
             document.getElementById('step' + stepNum).classList.add('active');
             if(stepNum === 4) initScratchCard();
+            if(stepNum === 7) initStep7();
         }
 
-        // 物理拉绳 (暗黑模式)
+        // 物理拉绳
         const pullCord = document.getElementById('pullCord');
         let isCordDragging = false, startCordY = 0;
         pullCord.addEventListener('mousedown', (e) => {
@@ -416,28 +492,8 @@
                 pullCord.style.transform = ''; pullCord.classList.add('cord-swing');
             }
         });
-        pullCord.addEventListener('touchstart', (e) => {
-            isCordDragging = true; startCordY = e.touches[0].clientY;
-            pullCord.classList.remove('cord-swing');
-        }, { passive: true });
-        pullCord.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            const dy = Math.max(0, e.touches[0].clientY - startCordY);
-            pullCord.style.transform = `scaleY(${1 + dy/200})`;
-            if (dy > 80) {
-                isCordDragging = false;
-                document.body.classList.toggle('dark-mode');
-                pullCord.style.transform = ''; pullCord.classList.add('cord-swing');
-            }
-        }, { passive: false });
-        pullCord.addEventListener('touchend', () => {
-            if (isCordDragging) {
-                isCordDragging = false;
-                pullCord.style.transform = ''; pullCord.classList.add('cord-swing');
-            }
-        });
 
-        // 聚光灯表单引力场
+        // 聚光灯聚焦
         const spotlightInputs = document.querySelectorAll('[data-spotlight="true"]');
         const spotlightOverlay = document.getElementById('spotlightOverlay');
         spotlightInputs.forEach(input => {
@@ -457,7 +513,7 @@
             spotlightOverlay.style.setProperty('--y', `${e.clientY}px`);
         }
 
-        // 关卡 1：社恐逃跑按钮
+        // 关卡 1：防误触关闭
         const runawayBtn = document.getElementById('runawayBtn');
         let lastMousePos = { x: 0, y: 0 }; let lastMouseTime = Date.now();
         document.addEventListener('mousemove', (e) => {
@@ -474,50 +530,23 @@
                 const newX = Math.random() * (parentRect.width - 40) - (parentRect.width/2 - 20);
                 const newY = Math.random() * (parentRect.height - 40) - (parentRect.height/2 - 20);
                 runawayBtn.style.transform = `translate(${newX}px, ${newY}px)`;
-                recordFail(1, 10, "提示：慢慢移过去");
+                recordFail(1, 10, "跑太快啦！鼠标挪慢点，不然按钮会害怕的。");
             }
             lastMousePos = { x: e.clientX, y: e.clientY }; lastMouseTime = now;
         });
-        runawayBtn.addEventListener('touchstart', (e) => {
-            if (!document.getElementById('step1').classList.contains('active')) return;
-            e.preventDefault();
-            const parentRect = runawayBtn.parentElement.getBoundingClientRect();
-            const newX = Math.random() * (parentRect.width - 60) - (parentRect.width/2 - 30);
-            const newY = Math.random() * (parentRect.height - 60) - (parentRect.height/2 - 30);
-            runawayBtn.style.transform = `translate(${newX}px, ${newY}px)`;
-            recordFail(1, 5, "提示：慢慢移过去");
-        }, { passive: false });
         runawayBtn.addEventListener('click', () => { goToStep(2); });
 
-        // 关卡 2：防假读滚动条
+        // 关卡 2：阅读限速
         const agreeBtn = document.getElementById('agreeBtn');
         let isTosRead = false;
         tosContainer.addEventListener('wheel', (e) => {
             if (!document.getElementById('step2').classList.contains('active')) return;
             if (e.deltaY > 60) {
                 e.preventDefault(); tosContainer.scrollTo({ top: 0, behavior: 'smooth' });
-                showToast("读太快了，重来");
-                recordFail(2, 5, isTouchDevice() ? "提示：慢慢滑到底" : "提示：点击文字区，用 ↓ 键翻到底");
+                showToast("滑太快啦！罚你重头再来~");
+                recordFail(2, 5, "提示：鼠标滚轮容易翻车，建议用键盘的下方向键(↓)慢慢往下看。");
             }
         }, { passive: false });
-        let lastTouchScrollY = 0, lastTouchScrollTime = 0;
-        tosContainer.addEventListener('touchmove', () => {
-            const now = Date.now(); const dy = tosContainer.scrollTop - lastTouchScrollY;
-            const speed = Math.abs(dy) / Math.max(now - lastTouchScrollTime, 1);
-            if (speed > 2 && dy > 0) {
-                tosContainer.scrollTo({ top: 0, behavior: 'smooth' });
-                showToast("滑太快了，重来");
-                recordFail(2, 3, "提示：慢慢滑到底");
-            }
-            lastTouchScrollY = tosContainer.scrollTop; lastTouchScrollTime = now;
-        }, { passive: true });
-        window.addEventListener('keydown', (e) => {
-            if (!document.getElementById('step2').classList.contains('active')) return;
-            if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                tosContainer.scrollBy({ top: 8, behavior: 'auto' });
-            }
-        });
 
         tosContainer.addEventListener('scroll', () => {
             if (tosContainer.scrollHeight - tosContainer.scrollTop - tosContainer.clientHeight < 10) {
@@ -530,7 +559,7 @@
         });
         agreeBtn.addEventListener('click', () => { if (isTosRead) goToStep(3); });
 
-        // 关卡 3：手机滑动条 + 验证码陷阱
+        // 关卡 3：终端配置
         const phoneSlider = document.getElementById('phoneSlider'), phoneDisplay = document.getElementById('phoneDisplay');
         const sendCodeBtn = document.getElementById('sendCodeBtn'), step3State1 = document.getElementById('step3-state1');
         const step3State2 = document.getElementById('step3-state2'), confirmPhoneDisplay = document.getElementById('confirmPhoneDisplay');
@@ -541,58 +570,47 @@
             let val = parseInt(e.target.value), offset = Math.floor(Math.random() * 31) - 15;
             if (offset === 0) offset = 5; 
             val += offset; phoneSlider.value = val; phoneDisplay.textContent = val;
-            showToast("手抖了");
+            showToast("哎呀，手抖了一下，号码变了。");
         });
 
-        let smsCountdownTimer = null;
-        function startSmsCountdown() {
-            clearInterval(smsCountdownTimer);
-            let countVal = 30;
-            sendCodeBtn.textContent = `重发 (${countVal}s)`;
-            sendCodeBtn.disabled = true; sendCodeBtn.classList.add('opacity-50', 'cursor-not-allowed'); sendCodeBtn.classList.remove('hover:scale-105');
-            smsCountdownTimer = setInterval(() => {
-                countVal = Math.max(0, countVal - 0.3);
-                sendCodeBtn.textContent = `重发 (${Math.ceil(countVal)}s)`;
-                if (countVal <= 0) {
-                    clearInterval(smsCountdownTimer);
-                    sendCodeBtn.textContent = '重新发送'; sendCodeBtn.disabled = false;
-                    sendCodeBtn.classList.remove('opacity-50', 'cursor-not-allowed'); sendCodeBtn.classList.add('hover:scale-105');
-                }
-            }, 1000);
-        }
         sendCodeBtn.addEventListener('click', () => {
-            step3State1.classList.add('opacity-0', 'pointer-events-none');
-            confirmPhoneDisplay.textContent = phoneSlider.value;
-            setTimeout(() => step3State2.classList.remove('opacity-0', 'pointer-events-none'), 50);
-            showToast("已发送");
-            startSmsCountdown();
+            step3State1.classList.add('opacity-0');
+            setTimeout(() => {
+                step3State1.classList.add('hidden'); step3State2.classList.remove('hidden');
+                confirmPhoneDisplay.textContent = phoneSlider.value; 
+                setTimeout(() => step3State2.classList.remove('opacity-0'), 50);
+            }, 500);
+            showToast("假装短信已经发出去啦~");
         });
 
         backToPhoneBtn.addEventListener('click', () => {
-            step3State2.classList.add('opacity-0', 'pointer-events-none');
-            setTimeout(() => step3State1.classList.remove('opacity-0', 'pointer-events-none'), 50);
+            step3State2.classList.add('opacity-0');
+            setTimeout(() => {
+                step3State2.classList.add('hidden'); step3State1.classList.remove('hidden');
+                setTimeout(() => step3State1.classList.remove('opacity-0'), 50);
+            }, 500);
             smsCodeInput.value = ''; 
-            recordFail(3, 3, "提示：万能码是 000000", 5000);
+            recordFail(3, 3, "偷偷告诉你，验证码其实是 000000，别填错了。", 8000);
         });
 
         verifyCodeBtn.addEventListener('click', () => {
             if (smsCodeInput.value === '000000') goToStep(4);
             else {
-                showToast("验证码错误");
-                recordFail(3, 3, "提示：万能码是 000000", 5000);
+                showToast("验证码不对哦，再猜猜？");
+                recordFail(3, 3, "偷偷告诉你，正确的验证码是 000000。", 8000);
             }
         });
 
-        // 关卡 4：俄罗斯套娃 + 情绪震动 & 刮刮乐
+        // 关卡 4：密钥配置
         const pwdInput = document.getElementById('passwordInput'), rulesContainer = document.getElementById('rulesContainer');
         const pwdNextBtn = document.getElementById('pwdNextBtn'), secretPwdDisplay = document.getElementById('secretPasswordDisplay');
         const currentMonth = new Date().toLocaleString('en-US', { month: 'short' });
         const pwdRules = [
-            { id: 'r1', text: '密码必须包含至少 8 个字符', check: (v) => v.length >= 8 },
-            { id: 'r2', text: '必须包含一个大写字母', check: (v) => /[A-Z]/.test(v) },
-            { id: 'r3', text: '密码长度必须是一个素数 (如 11, 13, 17)', check: (v) => { const num = v.length; if (num <= 1) return false; for(let i=2; i<=Math.sqrt(num); i++) if(num%i===0) return false; return true; }},
-            { id: 'r4', text: `需包含您当前月份的英文缩写 (${currentMonth})`, check: (v) => v.includes(currentMonth) },
-            { id: 'r5', text: '所有数字相加的总和必须等于 25', check: (v) => { const nums = v.match(/\d/g); if (!nums) return false; return nums.reduce((acc, curr) => acc + parseInt(curr), 0) === 25; }}
+            { id: 'r1', text: '至少得有 8 位吧', check: (v) => v.length >= 8 },
+            { id: 'r2', text: '必须带个大写字母', check: (v) => /[A-Z]/.test(v) },
+            { id: 'r3', text: '密码长度得是个质数（比如 11，13，17）', check: (v) => { const num = v.length; if (num <= 1) return false; for(let i=2; i<=Math.sqrt(num); i++) if(num%i===0) return false; return true; }},
+            { id: 'r4', text: `必须包含当前的英文月份缩写 (${currentMonth})`, check: (v) => v.includes(currentMonth) },
+            { id: 'r5', text: '密码里所有的数字加起来得刚好等于 25', check: (v) => { const nums = v.match(/\d/g); if (!nums) return false; return nums.reduce((acc, curr) => acc + parseInt(curr), 0) === 25; }}
         ];
         let currentRuleIndex = 0;
 
@@ -633,9 +651,10 @@
         });
 
         pwdInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Backspace' || e.key === 'Delete') recordFail(4, 20, `提示：A11111111111111225${currentMonth}`, 6000);
+            if (e.key === 'Backspace' || e.key === 'Delete') recordFail(4, 20, `别乱删啦！提示：把当前月份缩写 ${currentMonth} 加进去，并让所有数字凑够 25。`, 8000);
         });
 
+        // 刮刮乐画布
         const scratchCanvas = document.getElementById('scratchCanvas');
         let scratchCtx, isScratching = false;
 
@@ -646,7 +665,7 @@
             gradient.addColorStop(0, '#e5e7eb'); gradient.addColorStop(0.5, '#d1d5db'); gradient.addColorStop(1, '#9ca3af');
             scratchCtx.fillStyle = gradient; scratchCtx.fillRect(0, 0, scratchCanvas.width, scratchCanvas.height);
             scratchCtx.font = "12px sans-serif"; scratchCtx.fillStyle = "#6b7280"; scratchCtx.textAlign = "center";
-            scratchCtx.fillText("刮开查看", scratchCanvas.width/2, scratchCanvas.height/2 + 4);
+            scratchCtx.fillText("刮开图层", scratchCanvas.width/2, scratchCanvas.height/2 + 4);
             scratchCtx.globalCompositeOperation = 'destination-out';
         }
 
@@ -659,69 +678,36 @@
         scratchCanvas.addEventListener('mousedown', () => isScratching = true);
         window.addEventListener('mouseup', () => isScratching = false);
         scratchCanvas.addEventListener('mousemove', scratch);
-        scratchCanvas.addEventListener('touchstart', (e) => { isScratching = true; scratch(e.touches[0]); });
-        scratchCanvas.addEventListener('touchend', () => isScratching = false);
-        scratchCanvas.addEventListener('touchmove', (e) => { e.preventDefault(); scratch(e.touches[0]); });
 
         pwdNextBtn.addEventListener('click', () => goToStep(5));
 
-        // 关卡 5：极窄火线滑块验证
+        // 关卡 5：行为验证
         const captchaDot = document.getElementById('captchaDot'), captchaPath = document.getElementById('captchaPath'), step5Svg = document.getElementById('captchaSvg');
-        let isDragging = false;
-
-        function getDotStartPos() {
-            const r = step5Svg.getBoundingClientRect();
-            return { left: Math.round(50 * r.width / 500) - 10, top: 65 };
-        }
-        function resetDot() {
-            const pos = getDotStartPos();
-            captchaDot.style.transition = 'all 0.3s ease';
-            captchaDot.style.left = pos.left + 'px'; captchaDot.style.top = pos.top + 'px';
-            setTimeout(() => { captchaDot.style.transition = 'box-shadow 0.2s'; }, 300);
-        }
-        requestAnimationFrame(() => { const p = getDotStartPos(); captchaDot.style.left = p.left + 'px'; captchaDot.style.top = p.top + 'px'; });
-
-        function handleCaptchaMove(clientX, clientY) {
-            if (!isDragging || !document.getElementById('step5').classList.contains('active')) return;
-            const svgRect = step5Svg.getBoundingClientRect();
-            const x = clientX - svgRect.left, y = clientY - svgRect.top;
-            captchaDot.style.left = (x - 10) + 'px'; captchaDot.style.top = (y - 10) + 'px';
-            // 用贝塞尔曲线距离判断，避免 elementFromPoint 在触摸端失效
-            const scaleX = svgRect.width / 500, scaleY = svgRect.height / 150;
-            // 曲线: M 50,75 C 150,180 350,-30 450,75，参数化计算最近点距离
-            const tolerance = isTouchDevice() ? 28 : 16;
-            function bezierY(t) {
-                return Math.pow(1-t,3)*75*scaleY + 3*Math.pow(1-t,2)*t*180*scaleY + 3*(1-t)*t*t*(-30)*scaleY + t*t*t*75*scaleY;
-            }
-            function bezierX(t) {
-                return Math.pow(1-t,3)*50*scaleX + 3*Math.pow(1-t,2)*t*150*scaleX + 3*(1-t)*t*t*350*scaleX + t*t*t*450*scaleX;
-            }
-            let minDist = Infinity;
-            for (let t = 0; t <= 1; t += 0.02) {
-                const bx = bezierX(t), by = bezierY(t);
-                const d = Math.sqrt((x-bx)**2 + (y-by)**2);
-                if (d < minDist) minDist = d;
-            }
-            if (minDist > tolerance) {
-                isDragging = false; captchaDot.style.cursor = 'grab'; captchaDot.style.boxShadow = 'none'; showToast("偏了，重来");
-                captchaDot.classList.add('bg-red-500'); setTimeout(() => captchaDot.classList.remove('bg-red-500'), 300);
-                resetDot(); recordFail(5, 5, "提示：匀速拖过去", 4000); return;
-            }
-            if (x > svgRect.width * 0.88) { isDragging = false; showToast("验证成功！"); setTimeout(() => goToStep(6), 1000); }
-        }
+        let isDragging = false; const dotStartPos = { left: 40, top: 65 }; 
 
         captchaDot.addEventListener('mousedown', () => { isDragging = true; captchaDot.style.cursor = 'grabbing'; captchaDot.style.boxShadow = '0 0 0 4px rgba(0,0,0,0.1)'; });
-        captchaDot.addEventListener('touchstart', (e) => { e.preventDefault(); isDragging = true; captchaDot.style.boxShadow = '0 0 0 4px rgba(0,0,0,0.1)'; }, { passive: false });
         window.addEventListener('mouseup', () => {
             if (isDragging) { isDragging = false; captchaDot.style.cursor = 'grab'; captchaDot.style.boxShadow = 'none'; resetDot(); }
         });
-        window.addEventListener('touchend', () => {
-            if (isDragging) { isDragging = false; captchaDot.style.boxShadow = 'none'; resetDot(); }
-        });
-        window.addEventListener('mousemove', (e) => { handleCaptchaMove(e.clientX, e.clientY); });
-        window.addEventListener('touchmove', (e) => { if (isDragging) handleCaptchaMove(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging || !document.getElementById('step5').classList.contains('active')) return;
+            const svgRect = step5Svg.getBoundingClientRect(), x = e.clientX - svgRect.left, y = e.clientY - svgRect.top;
+            captchaDot.style.left = (x - 10) + 'px'; captchaDot.style.top = (y - 10) + 'px';
+            captchaDot.style.pointerEvents = 'none'; const elUnderMouse = document.elementFromPoint(e.clientX, e.clientY); captchaDot.style.pointerEvents = 'auto'; 
 
-        // 关卡 6：牵一发而动全身退订
+            if (elUnderMouse !== captchaPath) {
+                isDragging = false; captchaDot.style.cursor = 'grab'; captchaDot.style.boxShadow = 'none'; showToast("哎呀，掉出去了，重来重来。");
+                captchaDot.classList.add('bg-red-500'); setTimeout(() => captchaDot.classList.remove('bg-red-500'), 300);
+                resetDot(); recordFail(5, 5, "提示：稳住稳住！别心急，顺着线慢慢滑就行。", 5000); return;
+            }
+            if (x > 440) { isDragging = false; showToast("漂亮！顺利过关。"); setTimeout(() => goToStep(6), 1000); }
+        });
+        function resetDot() {
+            captchaDot.style.transition = 'all 0.3s ease'; captchaDot.style.left = dotStartPos.left + 'px'; captchaDot.style.top = dotStartPos.top + 'px';
+            setTimeout(() => { captchaDot.style.transition = 'box-shadow 0.2s'; }, 300);
+        }
+
+        // 关卡 6：权限控制
         const toggleGrid = document.getElementById('toggleGrid'), finalSubmitBtn = document.getElementById('finalSubmitBtn'), resetStep6Btn = document.getElementById('resetStep6Btn');
         const gridSize = 3; let togglesState = [1, 1, 1, 1, 1, 1, 1, 1, 1];
         function renderToggles() {
@@ -730,7 +716,7 @@
                 const label = document.createElement('label'); label.className = 'flex flex-col items-center gap-2';
                 const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.className = 'ios-toggle'; checkbox.checked = state === 1;
                 checkbox.addEventListener('click', (e) => { e.preventDefault(); handleToggleClick(index); });
-                const span = document.createElement('span'); span.className = 'text-xs text-gray-400 font-medium'; span.textContent = `条款 0${index + 1}`;
+                const span = document.createElement('span'); span.className = 'text-xs text-gray-400 font-medium'; span.textContent = `开关 0${index + 1}`;
                 label.appendChild(checkbox); label.appendChild(span); toggleGrid.appendChild(label);
             });
             checkFinalWin();
@@ -738,7 +724,7 @@
         function handleToggleClick(index) {
             const row = Math.floor(index / gridSize); const col = index % gridSize;
             flip(row, col); flip(row - 1, col); flip(row + 1, col); flip(row, col - 1); flip(row, col + 1);
-            renderToggles(); recordFail(6, 25, "提示：先点四角，再点中间", 6000);
+            renderToggles(); recordFail(6, 25, "偷偷告诉你个通关秘籍：先点四个角的开关，最后再点中间那个。", 8000);
         }
         function flip(r, c) { if (r >= 0 && r < gridSize && c >= 0 && c < gridSize) { const idx = r * gridSize + c; togglesState[idx] = togglesState[idx] === 1 ? 0 : 1; } }
         function checkFinalWin() {
@@ -747,15 +733,134 @@
         }
         renderToggles();
         resetStep6Btn.addEventListener('click', () => { togglesState = [1, 1, 1, 1, 1, 1, 1, 1, 1]; renderToggles(); });
-        finalSubmitBtn.addEventListener('click', () => { failCounterWidget.classList.add('hidden'); goToStep(7); });
+        finalSubmitBtn.addEventListener('click', () => { goToStep(7); });
 
-        function triggerVictory() {
-            document.getElementById('finalFailCount').textContent = totalFails;
-            document.getElementById('finalMinutes').textContent = Math.max(1, Math.ceil((Date.now() - startTime) / 60000));
-            victoryText.classList.remove('opacity-0', 'pointer-events-none');
+        // 关卡 7：逼真的人机验证
+        let isStep7Init = false;
+        function initStep7() {
+            if (isStep7Init) return;
+            isStep7Init = true;
+            
+            const rcWidget = document.getElementById('rc-widget');
+            const rcCheckbox = document.getElementById('rc-checkbox-real');
+            const rcSpin = document.getElementById('rc-spin-real');
+            const rcPopup = document.getElementById('rc-popup');
+            const rcGrid = document.getElementById('rc-grid');
+            const rcVerifyBtn = document.getElementById('rc-verify-btn');
+            const rcErrorMsg = document.getElementById('rc-error-msg');
+            const cfSuccess = document.getElementById('cf-success');
+            
+            let verifyAttempts = 0;
+            
+            // 生成 16 个网格图块
+            for (let i = 0; i < 16; i++) {
+                const col = i % 4;
+                const row = Math.floor(i / 4);
+                
+                const wrapper = document.createElement('div');
+                wrapper.className = 'rc-tile-wrapper';
+                
+                const tile = document.createElement('div');
+                tile.className = 'rc-tile';
+                tile.style.backgroundPosition = `${col * 33.333}% ${row * 33.333}%`;
+                
+                const checkIcon = document.createElement('div');
+                checkIcon.className = 'rc-tile-check';
+                checkIcon.innerHTML = `<svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="4"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>`;
+                
+                wrapper.appendChild(tile);
+                wrapper.appendChild(checkIcon);
+                
+                wrapper.addEventListener('click', () => {
+                    wrapper.classList.toggle('selected');
+                    const selectedCount = document.querySelectorAll('.rc-tile-wrapper.selected').length;
+                    rcVerifyBtn.textContent = selectedCount > 0 ? '验证' : '跳过';
+                });
+                rcGrid.appendChild(wrapper);
+            }
+
+            // 点击复选框触发验证弹窗
+            rcCheckbox.addEventListener('click', () => {
+                if (rcSpin.classList.contains('hidden') === false) return; // 防止重复点击
+                
+                rcSpin.classList.remove('hidden');
+                
+                // 模拟网络请求延迟后弹出九宫格
+                setTimeout(() => {
+                    rcSpin.classList.add('hidden');
+                    rcPopup.classList.remove('hidden');
+                    void rcPopup.offsetWidth;
+                    rcPopup.classList.remove('opacity-0');
+                    rcPopup.style.pointerEvents = 'auto';
+                }, 800);
+            });
+
+            // 验证按钮点击逻辑（核心折磨点）
+            rcVerifyBtn.addEventListener('click', () => {
+                const selectedCount = document.querySelectorAll('.rc-tile-wrapper.selected').length;
+                
+                if (selectedCount === 0) {
+                    rcErrorMsg.textContent = "请选择所有匹配的图像。";
+                    rcErrorMsg.classList.remove('opacity-0');
+                    setTimeout(() => rcErrorMsg.classList.add('opacity-0'), 2000);
+                    return;
+                }
+
+                verifyAttempts++;
+
+                // 强制前两次失败
+                if (verifyAttempts < 3) {
+                    rcVerifyBtn.textContent = '验证中...';
+                    setTimeout(() => {
+                        rcErrorMsg.textContent = "请重试。";
+                        rcErrorMsg.classList.remove('opacity-0');
+                        
+                        // 弹窗抖动特效
+                        rcPopup.classList.add('shake-anim');
+                        setTimeout(() => rcPopup.classList.remove('shake-anim'), 400);
+
+                        // 取消所有选中状态并重置按钮
+                        document.querySelectorAll('.rc-tile-wrapper').forEach(t => t.classList.remove('selected'));
+                        rcVerifyBtn.textContent = '跳过';
+                        
+                        // 记录失败
+                        recordFail(7, 2, "AI 觉得你刚才找的自行车不够标准，重新找一遍吧。", 5000);
+                        
+                        setTimeout(() => rcErrorMsg.classList.add('opacity-0'), 2000);
+                    }, 600);
+                } else {
+                    // 第三次通过验证
+                    rcVerifyBtn.textContent = '验证中...';
+                    setTimeout(() => {
+                        rcPopup.classList.add('opacity-0');
+                        rcPopup.style.pointerEvents = 'none';
+                        
+                        // 隐藏原始 checkbox 框
+                        rcWidget.classList.add('opacity-0');
+                        
+                        setTimeout(() => {
+                            rcPopup.classList.add('hidden');
+                            rcWidget.classList.add('hidden');
+                            
+                            // 显示 Cloudflare 成功图标
+                            cfSuccess.classList.remove('hidden');
+                            void cfSuccess.offsetWidth;
+                            cfSuccess.classList.remove('opacity-0');
+                            
+                            showToast("成功证明您不是机器人！");
+                            
+                            setTimeout(() => {
+                                failCounterWidget.classList.add('hidden');
+                                goToStep(8);
+                            }, 1500);
+                            
+                        }, 500);
+                    }, 800);
+                }
+            });
         }
 
-        // 关卡 7：黑洞销毁结局
+        // 关卡 8：终极销毁
         const archiveCard = document.getElementById('archiveCard'), blackHole = document.getElementById('blackHole'), victoryText = document.getElementById('victoryText');
         let isCardDragging = false, cardOffset = { x: 0, y: 0 };
         archiveCard.addEventListener('mousedown', (e) => {
@@ -764,7 +869,7 @@
             archiveCard.style.cursor = 'grabbing'; archiveCard.style.transition = 'none'; 
         });
         window.addEventListener('mousemove', (e) => {
-            if (!isCardDragging || !document.getElementById('step7').classList.contains('active')) return;
+            if (!isCardDragging || !document.getElementById('step8').classList.contains('active')) return;
             const newX = e.clientX - cardOffset.x, newY = e.clientY - cardOffset.y;
             archiveCard.style.left = `${newX}px`; archiveCard.style.top = `${newY}px`; archiveCard.style.bottom = 'auto'; 
 
@@ -776,33 +881,10 @@
                 isCardDragging = false;
                 archiveCard.style.left = `${holeCenter.x - cardRect.width/2}px`; archiveCard.style.top = `${holeCenter.y - cardRect.height/2}px`;
                 void archiveCard.offsetWidth; archiveCard.classList.add('sucked-in');
-                setTimeout(triggerVictory, 1000);
+                setTimeout(() => { victoryText.classList.remove('opacity-0', 'pointer-events-none'); }, 1000);
             }
         });
         window.addEventListener('mouseup', () => { if (isCardDragging) { isCardDragging = false; archiveCard.style.cursor = 'grab'; archiveCard.style.transition = 'transform 0.3s ease'; } });
-        archiveCard.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            isCardDragging = true; const rect = archiveCard.getBoundingClientRect();
-            cardOffset.x = e.touches[0].clientX - rect.left; cardOffset.y = e.touches[0].clientY - rect.top;
-            archiveCard.style.transition = 'none';
-        }, { passive: false });
-        window.addEventListener('touchmove', (e) => {
-            if (!isCardDragging || !document.getElementById('step7').classList.contains('active')) return;
-            const touch = e.touches[0];
-            const newX = touch.clientX - cardOffset.x, newY = touch.clientY - cardOffset.y;
-            archiveCard.style.left = `${newX}px`; archiveCard.style.top = `${newY}px`; archiveCard.style.bottom = 'auto';
-            const holeRect = blackHole.getBoundingClientRect(), cardRect = archiveCard.getBoundingClientRect();
-            const holeCenter = { x: holeRect.left + holeRect.width/2, y: holeRect.top + holeRect.height/2 };
-            const cardCenter = { x: cardRect.left + cardRect.width/2, y: cardRect.top + cardRect.height/2 };
-            const dist = Math.sqrt(Math.pow(holeCenter.x - cardCenter.x, 2) + Math.pow(holeCenter.y - cardCenter.y, 2));
-            if (dist < 80) {
-                isCardDragging = false;
-                archiveCard.style.left = `${holeCenter.x - cardRect.width/2}px`; archiveCard.style.top = `${holeCenter.y - cardRect.height/2}px`;
-                void archiveCard.offsetWidth; archiveCard.classList.add('sucked-in');
-                setTimeout(triggerVictory, 1000);
-            }
-        }, { passive: true });
-        window.addEventListener('touchend', () => { if (isCardDragging) { isCardDragging = false; archiveCard.style.transition = 'transform 0.3s ease'; } });
 
     </script>
 </body>
