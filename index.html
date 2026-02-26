@@ -1,13 +1,13 @@
-            const newX = e.clientX - cardOffset.x, newY = e.clientY - cardOffset.<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Archive</title>
     <!-- 使用 Tailwind CSS 作为基础样式框架 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://npm.elemecdn.com/lxgw-wenkai-screen-webfont/style.css" media="print" onload="this.media='all'">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
     
     <style>
         :root {
@@ -127,7 +127,7 @@
         /* 逼真人机验证的专属样式 */
         .rc-tile-wrapper { background: white; overflow: hidden; position: relative; cursor: pointer; }
         .rc-tile {
-            background-image: url('https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=400&q=80');
+            /* 背景图将通过 JS 动态赋予，实现切换效果 */
             background-size: 400% 400%;
             width: 100%; height: 100%;
             transition: transform 0.1s ease;
@@ -285,15 +285,31 @@
         </div>
     </div>
 
-    <!-- 关卡 7：逼真的人机验证 -->
+    <!-- 关卡 7：逼真的人机验证联合体 -->
     <div id="step7" class="step-container bg-[#1a1a1a]">
-        <div class="flex flex-col items-center relative">
+        <div class="flex flex-col items-center relative h-[80px] w-[320px]">
             
-            <!-- 初始的 reCAPTCHA 勾选框 (Dark Mode) -->
-            <div id="rc-widget" class="bg-[#222] p-2 pl-4 pr-3 border border-[#444] rounded-[3px] shadow-sm flex items-center justify-between w-[304px] h-[78px] transition-all duration-300">
+            <!-- 阶段 1：Cloudflare 环境检测中 -->
+            <div id="cf-verifying" class="bg-[#222] p-4 border border-[#444] rounded-[3px] shadow-[0_0_15px_rgba(0,0,0,0.6)] flex items-center justify-between w-[320px] h-[80px] absolute top-0 left-1/2 transform -translate-x-1/2 transition-all duration-500">
+                <div class="flex items-center gap-4">
+                    <div class="w-6 h-6 border-[3px] border-[#555] border-t-[#fff] rounded-full animate-spin"></div>
+                    <span class="text-[14px] font-normal text-white tracking-wide">Verify you are human</span>
+                </div>
+                <div class="flex flex-col items-end justify-center">
+                    <span class="text-white font-bold text-xs tracking-widest flex items-center opacity-80">
+                        <svg class="w-4 h-4 mr-1 text-orange-400" viewBox="0 0 24 24" fill="currentColor"><path d="M19.333 10.023A5.501 5.501 0 0014 5.5a5.498 5.498 0 00-4.885 2.877A4.5 4.5 0 004.5 13.5a4.5 4.5 0 00.354 1.758A4.001 4.001 0 005 23h13a4 4 0 001.333-7.758 5.467 5.467 0 000-5.219z"/></svg>
+                        Cloudflare
+                    </span>
+                </div>
+            </div>
+
+            <!-- 阶段 2：初始的 reCAPTCHA 勾选框 (Dark Mode) -->
+            <div id="rc-widget" class="bg-[#222] p-2 pl-4 pr-3 border border-[#444] rounded-[3px] shadow-sm flex items-center justify-between w-[304px] h-[78px] absolute top-0 left-1/2 transform -translate-x-1/2 hidden opacity-0 transition-opacity duration-300">
                 <div class="flex items-center gap-3">
                     <div id="rc-checkbox-real" class="magnetic-btn w-7 h-7 border-[2px] border-[#c1c1c1] rounded-[2px] bg-white cursor-pointer flex items-center justify-center transition-all">
                         <div id="rc-spin-real" class="w-5 h-5 border-[3px] border-[#f3f3f3] border-t-[#4a90e2] rounded-full animate-spin hidden"></div>
+                        <!-- 验证成功后的绿色打勾 -->
+                        <svg id="rc-check-real" class="w-5 h-5 text-[#34a853] hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="4"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
                     </div>
                     <span class="text-[14px] font-normal text-white tracking-wide">进行人机身份验证</span>
                 </div>
@@ -306,33 +322,16 @@
                 </div>
             </div>
 
-            <!-- 成功后的 Cloudflare 状态 -->
-            <div id="cf-success" class="bg-[#333] p-4 border border-[#555] rounded-[3px] shadow-sm flex items-center justify-between w-[304px] h-[78px] hidden opacity-0 transition-opacity duration-500">
-                <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-full bg-[#34d058] flex items-center justify-center">
-                        <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
-                    </div>
-                    <span class="text-[16px] font-normal text-white tracking-wider">成功!</span>
-                </div>
-                <div class="flex flex-col items-end justify-center">
-                    <span class="text-orange-400 font-bold text-sm tracking-widest flex items-center">
-                        <svg class="w-5 h-5 mr-1" viewBox="0 0 24 24" fill="currentColor"><path d="M19.333 10.023A5.501 5.501 0 0014 5.5a5.498 5.498 0 00-4.885 2.877A4.5 4.5 0 004.5 13.5a4.5 4.5 0 00.354 1.758A4.001 4.001 0 005 23h13a4 4 0 001.333-7.758 5.467 5.467 0 000-5.219z"/></svg>
-                        CLOUDFLARE
-                    </span>
-                    <span class="text-[10px] text-[#aaa] mt-1 scale-90 origin-right">隐私 · 帮助</span>
-                </div>
-            </div>
-
-            <!-- 图片验证码弹窗 (已修改为 fixed 居中，防止被底部裁切) -->
+            <!-- 悬浮的图片验证码弹窗 (动态更新图像) -->
             <div id="rc-popup" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white w-[380px] shadow-[0_10px_50px_rgba(0,0,0,0.8)] border border-[#ccc] z-[100] flex flex-col hidden opacity-0 transition-opacity duration-300 pointer-events-none">
                 <div class="bg-[#1a73e8] text-white p-5 flex flex-col gap-1">
                     <span class="text-sm tracking-wider">请选择包含</span>
-                    <span class="text-4xl font-bold tracking-widest mt-1 mb-1">自行车</span>
+                    <span id="rc-target-text" class="text-4xl font-bold tracking-widest mt-1 mb-1">自行车</span>
                     <span class="text-sm tracking-wider">的所有图块</span>
                 </div>
                 <div class="p-[5px] bg-white relative">
                     <div class="grid grid-cols-4 gap-[2px] w-full aspect-square bg-white" id="rc-grid">
-                        <!-- JS 动态生成 16 个方块 -->
+                        <!-- JS 根据题库动态生成 16 个方块并分配背景 -->
                     </div>
                     <p id="rc-error-msg" class="text-red-600 text-xs mt-2 h-4 opacity-0 transition-opacity absolute bottom-[-20px] left-2">请重试。</p>
                 </div>
@@ -349,23 +348,22 @@
         </div>
     </div>
 
-    <!-- 关卡 8：终极销毁 -->
-    <div id="step8" class="step-container bg-gray-100">
-        <div id="blackHoleContainer" class="absolute top-1/4 flex flex-col items-center">
-            <p class="text-gray-500 mb-6 font-mono tracking-widest text-sm uppercase">黑洞</p>
-            <div id="blackHole"></div>
-        </div>
-        <div id="archiveCard" class="absolute bottom-1/4 w-[300px] bg-white rounded-xl shadow-xl border border-gray-200 p-6 flex flex-col cursor-grab transition-transform" style="touch-action: none;">
-            <div class="border-b border-gray-100 pb-3 mb-3 flex justify-between items-center">
-                <h3 class="font-bold text-lg">通关卡片</h3>
-                <span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">一去不回</span>
+    <!-- 关卡 8：定力测试 (极简折磨流最终关) -->
+    <div id="step8" class="step-container bg-gray-50">
+        <div class="w-[500px] glass-panel p-10 rounded-3xl flex flex-col items-center shadow-xl">
+            <h2 class="text-2xl font-bold mb-4 tracking-tighter kinetic-title inline-block origin-bottom">最后一关</h2>
+            <p class="text-sm text-gray-500 mb-8 text-center">点击下方圆圈后，双手离开鼠标。<br>保持指针绝对静止 5 秒钟。哪怕抖了一像素，都会重头再来。</p>
+
+            <div id="stillness-zone" class="w-48 h-48 rounded-full border-2 border-gray-200 bg-white flex flex-col items-center justify-center cursor-pointer relative overflow-hidden transition-colors shadow-sm hover:shadow-md">
+                <div id="stillness-bg" class="absolute bottom-0 left-0 w-full h-0 bg-black transition-all duration-[5000ms] ease-linear opacity-10"></div>
+                <span id="stillness-text" class="text-lg font-bold tracking-widest relative z-10 text-black transition-colors">点击开始</span>
+                <span id="stillness-time" class="text-xs text-gray-400 mt-2 font-mono relative z-10 transition-colors">0.00s</span>
             </div>
-            <p class="text-sm text-gray-500 mb-2">恭喜你熬到了最后！</p>
-            <p class="text-xs text-gray-400">把这小卡片扔进上面的黑洞，一切就结束啦。</p>
         </div>
-        <div id="victoryText" class="absolute inset-0 flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-1000 z-50">
-            <h1 class="text-6xl font-black tracking-tighter mb-4 text-black kinetic-title inline-block">恭喜通关</h1>
-            <p class="text-gray-600 tracking-widest text-sm bg-white/80 px-4 py-2 rounded-full shadow-sm">太不容易了，感谢你忍受这漫长的折磨~</p>
+
+        <div id="victoryText" class="absolute inset-0 flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-1000 z-[100] bg-white/90">
+            <h1 class="text-6xl font-black tracking-tighter mb-4 text-black kinetic-title inline-block">大功告成</h1>
+            <p class="text-gray-600 tracking-widest text-sm bg-white/80 px-4 py-2 rounded-full shadow-sm border border-gray-200">终于结束了，辛苦你啦！</p>
         </div>
     </div>
 
@@ -735,57 +733,89 @@
         resetStep6Btn.addEventListener('click', () => { togglesState = [1, 1, 1, 1, 1, 1, 1, 1, 1]; renderToggles(); });
         finalSubmitBtn.addEventListener('click', () => { goToStep(7); });
 
-        // 关卡 7：逼真的人机验证
+        // 关卡 7：逼真的人机验证组合逻辑
         let isStep7Init = false;
         function initStep7() {
             if (isStep7Init) return;
             isStep7Init = true;
             
+            const cfVerifying = document.getElementById('cf-verifying');
             const rcWidget = document.getElementById('rc-widget');
             const rcCheckbox = document.getElementById('rc-checkbox-real');
             const rcSpin = document.getElementById('rc-spin-real');
+            const rcCheckReal = document.getElementById('rc-check-real');
             const rcPopup = document.getElementById('rc-popup');
             const rcGrid = document.getElementById('rc-grid');
             const rcVerifyBtn = document.getElementById('rc-verify-btn');
             const rcErrorMsg = document.getElementById('rc-error-msg');
-            const cfSuccess = document.getElementById('cf-success');
+            const rcTargetText = document.getElementById('rc-target-text');
             
             let verifyAttempts = 0;
-            
-            // 生成 16 个网格图块
-            for (let i = 0; i < 16; i++) {
-                const col = i % 4;
-                const row = Math.floor(i / 4);
+
+            // 更新了用户提供的红绿灯和斑马线的高清真实网图
+            const challenges = [
+                { target: '自行车', imgUrl: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=400&q=80' },
+                { target: '红绿灯', imgUrl: 'https://img.mistmu.top/PicGo/20260227062110HjYo6K.webp' },
+                { target: '斑马线', imgUrl: 'https://img.mistmu.top/PicGo/20260227062119ePIvo9.webp' }
+            ];
+
+            // 动态加载九宫格题目的函数
+            function loadChallenge(index) {
+                rcGrid.innerHTML = '';
+                const chal = challenges[index];
+                rcTargetText.textContent = chal.target;
                 
-                const wrapper = document.createElement('div');
-                wrapper.className = 'rc-tile-wrapper';
-                
-                const tile = document.createElement('div');
-                tile.className = 'rc-tile';
-                tile.style.backgroundPosition = `${col * 33.333}% ${row * 33.333}%`;
-                
-                const checkIcon = document.createElement('div');
-                checkIcon.className = 'rc-tile-check';
-                checkIcon.innerHTML = `<svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="4"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>`;
-                
-                wrapper.appendChild(tile);
-                wrapper.appendChild(checkIcon);
-                
-                wrapper.addEventListener('click', () => {
-                    wrapper.classList.toggle('selected');
-                    const selectedCount = document.querySelectorAll('.rc-tile-wrapper.selected').length;
-                    rcVerifyBtn.textContent = selectedCount > 0 ? '验证' : '跳过';
-                });
-                rcGrid.appendChild(wrapper);
+                for (let i = 0; i < 16; i++) {
+                    const col = i % 4;
+                    const row = Math.floor(i / 4);
+                    
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'rc-tile-wrapper';
+                    
+                    const tile = document.createElement('div');
+                    tile.className = 'rc-tile';
+                    // 动态替换背景图片
+                    tile.style.backgroundImage = `url('${chal.imgUrl}')`;
+                    tile.style.backgroundPosition = `${col * 33.333}% ${row * 33.333}%`;
+                    
+                    const checkIcon = document.createElement('div');
+                    checkIcon.className = 'rc-tile-check';
+                    checkIcon.innerHTML = `<svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="4"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>`;
+                    
+                    wrapper.appendChild(tile);
+                    wrapper.appendChild(checkIcon);
+                    
+                    wrapper.addEventListener('click', () => {
+                        wrapper.classList.toggle('selected');
+                        const selectedCount = document.querySelectorAll('.rc-tile-wrapper.selected').length;
+                        rcVerifyBtn.textContent = selectedCount > 0 ? '验证' : '跳过';
+                    });
+                    rcGrid.appendChild(wrapper);
+                }
+                rcVerifyBtn.textContent = '跳过';
             }
+
+            // 1. 模拟 Cloudflare 验证加载延迟 (停留 3 秒展示真实感)
+            setTimeout(() => {
+                cfVerifying.classList.add('opacity-0');
+                setTimeout(() => {
+                    cfVerifying.classList.add('hidden');
+                    
+                    // 2. 调出 Google reCAPTCHA
+                    rcWidget.classList.remove('hidden');
+                    void rcWidget.offsetWidth; 
+                    rcWidget.classList.remove('opacity-0');
+                }, 500);
+            }, 3000); 
+
+            // 初始化第一套考题
+            loadChallenge(0);
 
             // 点击复选框触发验证弹窗
             rcCheckbox.addEventListener('click', () => {
-                if (rcSpin.classList.contains('hidden') === false) return; // 防止重复点击
-                
+                if (rcSpin.classList.contains('hidden') === false || rcCheckReal.classList.contains('hidden') === false) return; // 防止重复点击或已验证状态下点击
                 rcSpin.classList.remove('hidden');
                 
-                // 模拟网络请求延迟后弹出九宫格
                 setTimeout(() => {
                     rcSpin.classList.add('hidden');
                     rcPopup.classList.remove('hidden');
@@ -795,7 +825,7 @@
                 }, 800);
             });
 
-            // 验证按钮点击逻辑（核心折磨点）
+            // 验证按钮点击逻辑
             rcVerifyBtn.addEventListener('click', () => {
                 const selectedCount = document.querySelectorAll('.rc-tile-wrapper.selected').length;
                 
@@ -808,7 +838,7 @@
 
                 verifyAttempts++;
 
-                // 强制前两次失败
+                // 前两次故意判定为失败，并刷新不同考题
                 if (verifyAttempts < 3) {
                     rcVerifyBtn.textContent = '验证中...';
                     setTimeout(() => {
@@ -819,40 +849,34 @@
                         rcPopup.classList.add('shake-anim');
                         setTimeout(() => rcPopup.classList.remove('shake-anim'), 400);
 
-                        // 取消所有选中状态并重置按钮
-                        document.querySelectorAll('.rc-tile-wrapper').forEach(t => t.classList.remove('selected'));
-                        rcVerifyBtn.textContent = '跳过';
+                        // 稍微延迟一下，加载下一套题库
+                        setTimeout(() => {
+                            loadChallenge(verifyAttempts);
+                        }, 500);
                         
-                        // 记录失败
-                        recordFail(7, 2, "AI 觉得你刚才找的自行车不够标准，重新找一遍吧。", 5000);
-                        
+                        recordFail(7, 2, "AI 觉得你的眼力不太行，换个题目再考考你。", 5000);
                         setTimeout(() => rcErrorMsg.classList.add('opacity-0'), 2000);
                     }, 600);
                 } else {
-                    // 第三次通过验证
+                    // 第三次通过验证，直接显示 reCAPTCHA 绿勾，删除 Cloudflare 成功页
                     rcVerifyBtn.textContent = '验证中...';
                     setTimeout(() => {
                         rcPopup.classList.add('opacity-0');
                         rcPopup.style.pointerEvents = 'none';
                         
-                        // 隐藏原始 checkbox 框
-                        rcWidget.classList.add('opacity-0');
+                        // 让复选框显示绿色勾勾
+                        rcCheckbox.classList.replace('border-[#c1c1c1]', 'border-transparent');
+                        rcCheckReal.classList.remove('hidden');
                         
                         setTimeout(() => {
                             rcPopup.classList.add('hidden');
-                            rcWidget.classList.add('hidden');
-                            
-                            // 显示 Cloudflare 成功图标
-                            cfSuccess.classList.remove('hidden');
-                            void cfSuccess.offsetWidth;
-                            cfSuccess.classList.remove('opacity-0');
                             
                             showToast("成功证明您不是机器人！");
                             
                             setTimeout(() => {
                                 failCounterWidget.classList.add('hidden');
                                 goToStep(8);
-                            }, 1500);
+                            }, 1000); // 直接前往第八关
                             
                         }, 500);
                     }, 800);
@@ -860,31 +884,86 @@
             });
         }
 
-        // 关卡 8：终极销毁
-        const archiveCard = document.getElementById('archiveCard'), blackHole = document.getElementById('blackHole'), victoryText = document.getElementById('victoryText');
-        let isCardDragging = false, cardOffset = { x: 0, y: 0 };
-        archiveCard.addEventListener('mousedown', (e) => {
-            isCardDragging = true; const rect = archiveCard.getBoundingClientRect();
-            cardOffset.x = e.clientX - rect.left; cardOffset.y = e.clientY - rect.top;
-            archiveCard.style.cursor = 'grabbing'; archiveCard.style.transition = 'none'; 
+        // 关卡 8：定力测试
+        const stillnessZone = document.getElementById('stillness-zone');
+        const stillnessBg = document.getElementById('stillness-bg');
+        const stillnessText = document.getElementById('stillness-text');
+        const stillnessTime = document.getElementById('stillness-time');
+        const victoryText = document.getElementById('victoryText');
+        
+        let isStillnessTesting = false;
+        let stillnessTimer = null;
+        let stillnessStartTime = 0;
+        let stillnessRaf = null;
+
+        function resetStillness(failed = false) {
+            if (!isStillnessTesting && !failed) return;
+            isStillnessTesting = false;
+            cancelAnimationFrame(stillnessRaf);
+            clearTimeout(stillnessTimer);
+            
+            // 立即中断动画
+            stillnessBg.style.transition = 'none';
+            stillnessBg.style.height = '0%';
+            
+            stillnessText.textContent = '点击开始';
+            stillnessTime.textContent = '0.00s';
+            
+            if (failed) {
+                stillnessZone.classList.replace('border-gray-200', 'border-red-400');
+                stillnessZone.classList.add('bg-red-50');
+                stillnessText.classList.replace('text-black', 'text-red-600');
+                stillnessTime.classList.replace('text-gray-400', 'text-red-400');
+                
+                setTimeout(() => {
+                    stillnessZone.classList.replace('border-red-400', 'border-gray-200');
+                    stillnessZone.classList.remove('bg-red-50');
+                    stillnessText.classList.replace('text-red-600', 'text-black');
+                    stillnessTime.classList.replace('text-red-400', 'text-gray-400');
+                }, 500);
+            }
+        }
+
+        stillnessZone.addEventListener('mousedown', (e) => {
+            if (isStillnessTesting) return;
+            e.stopPropagation(); 
+            isStillnessTesting = true;
+            stillnessStartTime = Date.now();
+            
+            stillnessText.textContent = '保持静止';
+            stillnessBg.style.transition = 'height 5s linear';
+            
+            // 强制重绘以触发 transition
+            void stillnessZone.offsetWidth;
+            stillnessBg.style.height = '100%';
+
+            function updateTime() {
+                if (!isStillnessTesting) return;
+                const elapsed = (Date.now() - stillnessStartTime) / 1000;
+                
+                if (elapsed >= 5) {
+                    stillnessTime.textContent = '5.00s';
+                    isStillnessTesting = false;
+                    setTimeout(() => {
+                        victoryText.classList.remove('opacity-0', 'pointer-events-none');
+                    }, 500);
+                    return;
+                }
+                
+                stillnessTime.textContent = elapsed.toFixed(2) + 's';
+                stillnessRaf = requestAnimationFrame(updateTime);
+            }
+            updateTime();
         });
-        window.addEventListener('mousemove', (e) => {
-            if (!isCardDragging || !document.getElementById('step8').classList.contains('active')) return;
-            const newX = e.clientX - cardOffset.x, newY = e.clientY - cardOffset.y;
-            archiveCard.style.left = `${newX}px`; archiveCard.style.top = `${newY}px`; archiveCard.style.bottom = 'auto'; 
 
-            const holeRect = blackHole.getBoundingClientRect(), cardRect = archiveCard.getBoundingClientRect();
-            const holeCenter = { x: holeRect.left + holeRect.width/2, y: holeRect.top + holeRect.height/2 }, cardCenter = { x: cardRect.left + cardRect.width/2, y: cardRect.top + cardRect.height/2 };
-            const dist = Math.sqrt(Math.pow(holeCenter.x - cardCenter.x, 2) + Math.pow(holeCenter.y - cardCenter.y, 2));
-
-            if (dist < 80) {
-                isCardDragging = false;
-                archiveCard.style.left = `${holeCenter.x - cardRect.width/2}px`; archiveCard.style.top = `${holeCenter.y - cardRect.height/2}px`;
-                void archiveCard.offsetWidth; archiveCard.classList.add('sucked-in');
-                setTimeout(() => { victoryText.classList.remove('opacity-0', 'pointer-events-none'); }, 1000);
+        // 监听全局鼠标移动
+        window.addEventListener('mousemove', () => {
+            if (isStillnessTesting && document.getElementById('step8').classList.contains('active')) {
+                resetStillness(true);
+                showToast("检测到微小位移，请重新开始。");
+                recordFail(8, 3, "手别抖！点完按钮赶紧把手从鼠标上拿开。", 4000);
             }
         });
-        window.addEventListener('mouseup', () => { if (isCardDragging) { isCardDragging = false; archiveCard.style.cursor = 'grab'; archiveCard.style.transition = 'transform 0.3s ease'; } });
 
     </script>
 </body>
