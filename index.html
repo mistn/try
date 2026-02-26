@@ -186,8 +186,8 @@
 
     <!-- 关卡 3：手机号滑动条地狱 + 验证码陷阱 -->
     <div id="step3" class="step-container bg-white">
-        <div class="w-[min(500px,92vw)] flex flex-col items-center">
-            <div id="step3-state1" class="w-full flex flex-col items-center transition-opacity duration-500">
+        <div class="w-[min(500px,92vw)] relative" style="min-height:340px">
+            <div id="step3-state1" class="absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-500">
                 <p class="text-sm text-gray-400 mb-10 text-center">为了您的安全，请拖动滑块选择您的真实手机号码。</p>
                 <div class="text-4xl font-mono tracking-widest mb-8 text-black" id="phoneDisplay">13000000000</div>
                 <input type="range" id="phoneSlider" min="13000000000" max="19999999999" value="13000000000" step="1" class="w-full mb-6">
@@ -197,7 +197,7 @@
                 </button>
             </div>
 
-            <div id="step3-state2" class="w-full flex flex-col items-center hidden opacity-0 transition-opacity duration-500 relative">
+            <div id="step3-state2" class="absolute inset-0 flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-500">
                 <p class="text-sm text-gray-400 mb-6 text-center">短信验证码已发送至：<br><span id="confirmPhoneDisplay" class="text-2xl font-mono font-bold text-black mt-3 inline-block tracking-widest"></span></p>
                 <input type="text" id="smsCodeInput" placeholder="点击输入" maxlength="6" class="w-2/3 border-b border-gray-300 py-3 text-center text-xl focus:outline-none transition-colors bg-transparent mb-8 tracking-[0.5em] font-mono" data-spotlight="true">
                 <button id="verifyCodeBtn" class="magnetic-btn px-10 py-3 bg-black text-white rounded-full text-sm font-semibold tracking-widest hover:scale-105 mb-6">
@@ -549,22 +549,16 @@
             }, 1000);
         }
         sendCodeBtn.addEventListener('click', () => {
-            step3State1.classList.add('opacity-0');
-            setTimeout(() => {
-                step3State1.classList.add('hidden'); step3State2.classList.remove('hidden');
-                confirmPhoneDisplay.textContent = phoneSlider.value; 
-                setTimeout(() => step3State2.classList.remove('opacity-0'), 50);
-            }, 500);
+            step3State1.classList.add('opacity-0', 'pointer-events-none');
+            confirmPhoneDisplay.textContent = phoneSlider.value;
+            setTimeout(() => step3State2.classList.remove('opacity-0', 'pointer-events-none'), 50);
             showToast("已发送");
             startSmsCountdown();
         });
 
         backToPhoneBtn.addEventListener('click', () => {
-            step3State2.classList.add('opacity-0');
-            setTimeout(() => {
-                step3State2.classList.add('hidden'); step3State1.classList.remove('hidden');
-                setTimeout(() => step3State1.classList.remove('opacity-0'), 50);
-            }, 500);
+            step3State2.classList.add('opacity-0', 'pointer-events-none');
+            setTimeout(() => step3State1.classList.remove('opacity-0', 'pointer-events-none'), 50);
             smsCodeInput.value = ''; 
             recordFail(3, 3, "提示：万能码是 000000", 5000);
         });
