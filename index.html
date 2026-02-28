@@ -348,22 +348,27 @@
         </div>
     </div>
 
-    <!-- 关卡 8：定力测试 (极简折磨流最终关) -->
-    <div id="step8" class="step-container bg-gray-50">
-        <div class="w-[500px] glass-panel p-10 rounded-3xl flex flex-col items-center shadow-xl">
-            <h2 class="text-2xl font-bold mb-4 tracking-tighter kinetic-title inline-block origin-bottom">最后一关</h2>
-            <p class="text-sm text-gray-500 mb-8 text-center">点击下方圆圈后，双手离开鼠标。<br>保持指针绝对静止 5 秒钟。哪怕抖了一像素，都会重头再来。</p>
+    <!-- 关卡 8：精准时机 -->
+    <div id="step8" class="step-container bg-white">
+        <div class="w-[500px] flex flex-col items-center">
+            <h2 class="text-3xl font-bold mb-2 text-black tracking-widest">最后一关</h2>
+            <p class="text-sm text-gray-500 mb-12 text-center">
+                请在滑块移动至绿色目标区域内时，点击“提交”按钮。
+            </p>
 
-            <div id="stillness-zone" class="w-48 h-48 rounded-full border-2 border-gray-200 bg-white flex flex-col items-center justify-center cursor-pointer relative overflow-hidden transition-colors shadow-sm hover:shadow-md">
-                <div id="stillness-bg" class="absolute bottom-0 left-0 w-full h-0 bg-black transition-all duration-[5000ms] ease-linear opacity-10"></div>
-                <span id="stillness-text" class="text-lg font-bold tracking-widest relative z-10 text-black transition-colors">点击开始</span>
-                <span id="stillness-time" class="text-xs text-gray-400 mt-2 font-mono relative z-10 transition-colors">0.00s</span>
+            <div class="w-full h-8 bg-gray-100 rounded-full overflow-hidden relative mb-10 border border-gray-200 shadow-inner">
+                <div id="target-zone" class="absolute top-0 h-full bg-green-400 opacity-80 transition-all duration-300" style="left: 70%; width: 10%;"></div>
+                <div id="moving-slider" class="absolute top-0 left-0 w-1.5 h-full bg-black shadow-md" style="left: 0%;"></div>
             </div>
+
+            <button id="final-timing-btn" class="magnetic-btn px-12 py-3 bg-black text-white rounded-full text-sm font-semibold hover:scale-105 transition-transform tracking-widest">
+                提交
+            </button>
         </div>
 
-        <div id="victoryText" class="absolute inset-0 flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-1000 z-[100] bg-white/90">
-            <h1 class="text-6xl font-black tracking-tighter mb-4 text-black kinetic-title inline-block">大功告成</h1>
-            <p class="text-gray-600 tracking-widest text-sm bg-white/80 px-4 py-2 rounded-full shadow-sm border border-gray-200">终于结束了，辛苦你啦！</p>
+        <div id="victoryText" class="absolute inset-0 flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-1000 z-[100] bg-white">
+            <h1 class="text-6xl font-black mb-6 text-black tracking-widest">验证通过</h1>
+            <p class="text-gray-500 text-sm tracking-widest">您已成功完成所有安全校验操作。</p>
         </div>
     </div>
 
@@ -465,6 +470,7 @@
             document.getElementById('step' + stepNum).classList.add('active');
             if(stepNum === 4) initScratchCard();
             if(stepNum === 7) initStep7();
+            if(stepNum === 8) initStep8();
         }
 
         // 物理拉绳
@@ -537,6 +543,8 @@
         // 关卡 2：阅读限速
         const agreeBtn = document.getElementById('agreeBtn');
         let isTosRead = false;
+        
+        // 限制鼠标滚轮
         tosContainer.addEventListener('wheel', (e) => {
             if (!document.getElementById('step2').classList.contains('active')) return;
             if (e.deltaY > 60) {
@@ -546,6 +554,7 @@
             }
         }, { passive: false });
 
+        // 监听滚动完成
         tosContainer.addEventListener('scroll', () => {
             if (tosContainer.scrollHeight - tosContainer.scrollTop - tosContainer.clientHeight < 10) {
                 if (!isTosRead) {
@@ -555,6 +564,24 @@
                 }
             }
         });
+
+        // ==========================================
+        // 【已修复】添加全局键盘事件监听，确保按下箭头（↓/↑）可以滚动
+        // 因为全局 body 被设置了 overflow: hidden，且容器默认无焦点，
+        // 必须通过脚本来代劳按键的滚动行为。
+        // ==========================================
+        window.addEventListener('keydown', (e) => {
+            if (document.getElementById('step2').classList.contains('active')) {
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    tosContainer.scrollTop += 40; // 模拟向下按键滚动量
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    tosContainer.scrollTop -= 40; // 模拟向上按键滚动量
+                }
+            }
+        });
+
         agreeBtn.addEventListener('click', () => { if (isTosRead) goToStep(3); });
 
         // 关卡 3：终端配置
@@ -884,84 +911,85 @@
             });
         }
 
-        // 关卡 8：定力测试
-        const stillnessZone = document.getElementById('stillness-zone');
-        const stillnessBg = document.getElementById('stillness-bg');
-        const stillnessText = document.getElementById('stillness-text');
-        const stillnessTime = document.getElementById('stillness-time');
+        // 关卡 8：精准时机
+        const step8 = document.getElementById('step8');
+        const movingSlider = document.getElementById('moving-slider');
+        const targetZone = document.getElementById('target-zone');
+        const finalTimingBtn = document.getElementById('final-timing-btn');
         const victoryText = document.getElementById('victoryText');
         
-        let isStillnessTesting = false;
-        let stillnessTimer = null;
-        let stillnessStartTime = 0;
-        let stillnessRaf = null;
+        let timingRaf = null;
+        let sliderPos = 0;
+        let sliderDir = 1;
+        let sliderSpeed = 1.2; 
+        let targetStart = 70;
+        let targetWidth = 10;
+        let isTimingActive = false;
 
-        function resetStillness(failed = false) {
-            if (!isStillnessTesting && !failed) return;
-            isStillnessTesting = false;
-            cancelAnimationFrame(stillnessRaf);
-            clearTimeout(stillnessTimer);
-            
-            // 立即中断动画
-            stillnessBg.style.transition = 'none';
-            stillnessBg.style.height = '0%';
-            
-            stillnessText.textContent = '点击开始';
-            stillnessTime.textContent = '0.00s';
-            
-            if (failed) {
-                stillnessZone.classList.replace('border-gray-200', 'border-red-400');
-                stillnessZone.classList.add('bg-red-50');
-                stillnessText.classList.replace('text-black', 'text-red-600');
-                stillnessTime.classList.replace('text-gray-400', 'text-red-400');
-                
-                setTimeout(() => {
-                    stillnessZone.classList.replace('border-red-400', 'border-gray-200');
-                    stillnessZone.classList.remove('bg-red-50');
-                    stillnessText.classList.replace('text-red-600', 'text-black');
-                    stillnessTime.classList.replace('text-red-400', 'text-gray-400');
-                }, 500);
-            }
+        function initStep8() {
+            if (isTimingActive) return;
+            isTimingActive = true;
+            sliderPos = 0;
+            sliderDir = 1;
+            randomizeTarget();
+            startTimingLoop();
         }
 
-        stillnessZone.addEventListener('mousedown', (e) => {
-            if (isStillnessTesting) return;
-            e.stopPropagation(); 
-            isStillnessTesting = true;
-            stillnessStartTime = Date.now();
-            
-            stillnessText.textContent = '保持静止';
-            stillnessBg.style.transition = 'height 5s linear';
-            
-            // 强制重绘以触发 transition
-            void stillnessZone.offsetWidth;
-            stillnessBg.style.height = '100%';
+        function randomizeTarget() {
+            targetWidth = Math.floor(Math.random() * 6) + 8; // 8% - 13% 宽度的安全区
+            targetStart = Math.floor(Math.random() * 60) + 20; // 20% - 80% 的随机位置
+            targetZone.style.left = targetStart + '%';
+            targetZone.style.width = targetWidth + '%';
+        }
 
-            function updateTime() {
-                if (!isStillnessTesting) return;
-                const elapsed = (Date.now() - stillnessStartTime) / 1000;
+        function startTimingLoop() {
+            function loop() {
+                if (!isTimingActive) return;
                 
-                if (elapsed >= 5) {
-                    stillnessTime.textContent = '5.00s';
-                    isStillnessTesting = false;
-                    setTimeout(() => {
-                        victoryText.classList.remove('opacity-0', 'pointer-events-none');
-                    }, 500);
-                    return;
+                sliderPos += sliderSpeed * sliderDir;
+                if (sliderPos >= 100) {
+                    sliderPos = 100;
+                    sliderDir = -1;
+                } else if (sliderPos <= 0) {
+                    sliderPos = 0;
+                    sliderDir = 1;
                 }
                 
-                stillnessTime.textContent = elapsed.toFixed(2) + 's';
-                stillnessRaf = requestAnimationFrame(updateTime);
+                movingSlider.style.left = `calc(${sliderPos}% - 3px)`; 
+                
+                timingRaf = requestAnimationFrame(loop);
             }
-            updateTime();
-        });
+            timingRaf = requestAnimationFrame(loop);
+        }
 
-        // 监听全局鼠标移动
-        window.addEventListener('mousemove', () => {
-            if (isStillnessTesting && document.getElementById('step8').classList.contains('active')) {
-                resetStillness(true);
-                showToast("检测到微小位移，请重新开始。");
-                recordFail(8, 3, "手别抖！点完按钮赶紧把手从鼠标上拿开。", 4000);
+        finalTimingBtn.addEventListener('click', () => {
+            if (!isTimingActive) return;
+            
+            const sliderCenter = sliderPos;
+            const targetEnd = targetStart + targetWidth;
+            
+            if (sliderCenter >= targetStart && sliderCenter <= targetEnd) {
+                // 成功判定
+                isTimingActive = false;
+                cancelAnimationFrame(timingRaf);
+                movingSlider.style.backgroundColor = '#22c55e'; // 变成绿色代表成功
+                
+                setTimeout(() => {
+                    victoryText.classList.remove('opacity-0', 'pointer-events-none');
+                }, 300);
+            } else {
+                // 失败判定
+                showToast("未对准目标区域，请重试。");
+                recordFail(8, 3, "提示：滑块有一定的移动速度，请预判提前量进行点击。", 4000);
+                
+                // 惩罚机制：未对准则轻微提速，并随机更换安全区位置
+                sliderSpeed = Math.min(sliderSpeed + 0.15, 3.0);
+                randomizeTarget();
+                
+                // 按钮震动反馈
+                finalTimingBtn.classList.remove('shake-anim');
+                void finalTimingBtn.offsetWidth;
+                finalTimingBtn.classList.add('shake-anim');
             }
         });
 
